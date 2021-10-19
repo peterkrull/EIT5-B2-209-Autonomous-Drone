@@ -3,7 +3,7 @@ class control:
     """
     Class that allows for PID control. Methods are the `proportional` gain,
     `derivative` and `integral` functions. The derivative and integral methods
-    automatically calculate the time difference. The `controller` method allows
+    automatically calculate the time difference. The `PID` method allows
     for complete PID control, either using all of PID or parts, such as P, PI, PD
     and so on.
     """
@@ -52,7 +52,7 @@ class control:
             return self.integral
 
     # Combined P, I and/or D controller.
-    class controller:
+    class PID:
         """
         Complete PID controller complete PID control, with ability to use
         any combination of P, I and D and user-defined Kp, Ki and Kd constants.
@@ -106,17 +106,6 @@ class control:
 
 
             return P + I + D
-
-
-PID = control.controller(1,1,1)
-PID.start()
-
-import time
-
-while 1:
-
-    print ( round ( PID.update(0.1) , 6 )  )
-    time.sleep(0.01)
 
 
 
