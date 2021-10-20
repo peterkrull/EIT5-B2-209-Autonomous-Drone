@@ -40,7 +40,7 @@ for i in range(30):
 
     # Print pitch on change
     if yaw != prev_yaw:
-        print(f"Pitch : {yaw}")
+        print("Pitch : {}".format(yaw))
     prev_yaw = yaw
 
     # Send command
