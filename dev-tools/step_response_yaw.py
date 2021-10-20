@@ -34,7 +34,7 @@ for i in range(30):
     if i < 10:
         yaw = 0
     elif i < 20:
-        yaw = 72
+        yaw = 120
     elif i < 30:
         yaw = 0
 
