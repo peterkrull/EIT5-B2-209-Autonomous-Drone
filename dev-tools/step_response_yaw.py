@@ -39,9 +39,9 @@ for i in range(30):
         yaw = 0
 
     # Print pitch on change
-    if pitch != prev_pitch:
-        print(f"Pitch : {pitch}")
-    prev_pitch = pitch
+    if yaw != prev_yaw:
+        print(f"Pitch : {yaw}")
+    prev_yaw = yaw
 
     # Send command
     cf.commander.send_setpoint(roll,pitch,yaw,hover_thrust)
