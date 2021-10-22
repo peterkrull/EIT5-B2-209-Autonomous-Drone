@@ -66,13 +66,13 @@ class control:
         def __init__(self,Kp = None, Ki = None,Kd = None) -> object:
             self.Kp,self.Ki,self.Kd = Kp,Ki,Kd
             if self.Kp:
-                print("Setting P gain to : {}".format(Kp))
+                #print("Setting P gain to : {}".format(Kp))
                 self.p = control.proportional(Kp)
             if self.Ki:
-                print("Setting I gain to : {}".format(Ki))
+                #print("Setting I gain to : {}".format(Ki))
                 self.i = control.integral(Ki)
             if self.Kd:
-                print("Setting D gain to : {}".format(Kd))
+                #print("Setting D gain to : {}".format(Kd))
                 self.d = control.derivative(Kd)
 
         def start(self):
