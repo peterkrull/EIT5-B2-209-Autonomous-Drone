@@ -22,10 +22,17 @@ if __name__ == '__main__':
 
         with MotionCommander(scf) as mc:
 
-            mc.take_off()
+            print("Starting..")
+            mc.take_off(1)
+            print("Taking off")
             time.sleep(2)
+            print("Going up")
             mc.up(1.5,0.1)
+            time.sleep(2)
+            print("Going down")
             mc.down(1.5,0.1)
             time.sleep(2)
-            mc.land()
+            print("Landing")
+            mc.land(1)
+            print("Ending")
 
