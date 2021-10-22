@@ -30,12 +30,12 @@ except Exception as e:
     exit()
 
 # Send setpoint every 0.2 seconds
-for i in range(30):
-    if i < 10:
+for i in range(50):
+    if i < 30:
         yaw = 0
-    elif i < 20:
-        yaw = 72
-    elif i < 30:
+    elif i < 40:
+        yaw = 360
+    elif i < 50:
         yaw = 0
 
     # Print pitch on change
