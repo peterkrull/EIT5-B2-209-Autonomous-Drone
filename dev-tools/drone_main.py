@@ -36,7 +36,7 @@ def thread_main_loop():
 
         # Send updated control params
         cf.send_setpoint(roll,pitch,yaw,thrust)
-        time.sleep(0.005) # wait for 5 ms, or 1/200Hz (allows other threads to run)
+        time.sleep(1/(2*vicon_freq)) # allows other threads to run
         
 if __name__ == '__main__':
 
@@ -45,6 +45,7 @@ if __name__ == '__main__':
     drone_mass = 0.0318 # kilograms
     gravity = 9.81 # m/s²
     grav_force = drone_mass*gravity
+    vicon_freq = 100
 
     # Setup vicon udp reader and logger
     vicon_udp = viconUDP()
