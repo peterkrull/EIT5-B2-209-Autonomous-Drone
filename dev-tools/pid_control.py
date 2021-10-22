@@ -96,7 +96,7 @@ class control:
             Returns (float) : correction
 
             """
-            P,I,D = 0,0,0
+            P,I,D = 1,0,0
             if self.Kp:
                 P = self.p.update(error)
             if self.Ki:
