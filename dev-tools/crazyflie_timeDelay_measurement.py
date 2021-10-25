@@ -43,8 +43,12 @@ except Exception as e:
     exit()
 
 #Wait two seconds
-time.sleep(2)
+time.sleep(5)
 
 #Send new command and turn on LED
 led.on()
 cf.commander.send_setpoint(0,0,0,1)#The drone should not be capable of flight with a thrust value of 1
+time.sleep(5)
+led.off()
+cf.commander.send_stop_setpoint()
+cf.close_link()
