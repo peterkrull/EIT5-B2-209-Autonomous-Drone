@@ -24,9 +24,9 @@ def thread_main_loop():
         vicon_data.pop(0) # remove timestamp from dataset
 
         # Calculate error in position
-        x_error = setpoint.get('x')-vicon_data[0]/1000
-        y_error = setpoint.get('y')-vicon_data[1]/1000
-        z_error = setpoint.get('z')-vicon_data[2]/1000
+        x_error = (setpoint.get('x')-vicon_data[0])/1000
+        y_error = (setpoint.get('y')-vicon_data[1])/1000
+        z_error = (setpoint.get('z')-vicon_data[2])/1000
         
         # Get updated control from PID
         thrust = pid_thrust.update(z_error) + hover_thrust
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     drone_mass = 0.0318 # kilograms
     gravity = 9.81 # m/s²
     grav_force = drone_mass*gravity
-    vicon_freq = 100
+    vicon_freq = 300
 
     # Setup vicon udp reader and logger
     vicon_udp = viconUDP()
