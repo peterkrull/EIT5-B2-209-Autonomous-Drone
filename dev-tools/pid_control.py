@@ -63,7 +63,8 @@ class control:
             Kd (float) : Derivator constant
 
         """
-        def __init__(self,Kp = None, Ki = None,Kd = None) -> object:
+        def __init__(self,Kp = None, Ki = None,Kd = None,mode = "classic") -> object:
+            self.mode = mode
             self.Kp,self.Ki,self.Kd = Kp,Ki,Kd
             if self.Kp:
                 #print("Setting P gain to : {}".format(Kp))
@@ -104,9 +105,12 @@ class control:
             if self.Kd:
                 D = self.d.update(error)
 
-
-            return P + I + D
-
+            if self.mode == "classic":
+                return P + I + D
+            if self.mode == "modcon":
+                return P * ( 1 + I + D )
+            if self.mode == "modconx":
+                return P * ( 1 + (1/I) + D )
 
 
 
