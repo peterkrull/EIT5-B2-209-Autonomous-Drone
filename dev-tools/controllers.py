@@ -157,7 +157,9 @@ class control:
 
             """
             T = time.time()-self.prev_time
-            output = (self.k/((1/T)*self.b))*(((error-self.prev_error)/T)+self.a*(error))+(1/(1+(T*self.b)))*self.prev_output
+            #output = (self.k/((1/T)*self.b))*(((error-self.prev_error)/T)+self.a*(error))+(1/(1+(T*self.b)))*self.prev_output
+            #output = (self.k/((1/T)+self.b))*(((error-self.prev_error)/T)+(self.a*error))+(self.prev_output/(1+(T*self.b)))
+            output = (self.k*(error*(1+self.a*T)-self.prev_error)+self.prev_output)/(1+self.b*T)
             self.prev_output = output
             self.prev_error = error
             return output
