@@ -56,18 +56,17 @@ if __name__ == '__main__':
     cf.send_start_setpoint()
 
     # Setup PID control for all axes
-    pid_thrust = control.PID(Kp=1)
-    pid_pitch = control.PID(0)
-    pid_roll = control.PID(0)
-    pid_yaw = control.PID(0)
+    pid_thrust = control.PID()
+    pid_pitch = control.PID()
+    pid_roll = control.PID()
+    pid_yaw = control.PID()
 
     # Setup lead-lag controllers
-    lead_thrust = control.lead_lag_comp(a=0,b=1)
+    lead_thrust = control.lead_lag_comp(a=0,b=1,k=int(10e3))
+    lead_pitch = control.lead_lag_comp(a=0,b=1)
+    lead_roll = control.lead_lag_comp(a=0,b=1)
 
-    # Start all controllers
-    CON = [pid_thrust,pid_pitch,pid_roll,pid_yaw,lead_thrust]
-    for controller in CON:
-        controller.start()
+
 
     # Tells treads to keep running
     running = True
@@ -76,6 +75,12 @@ if __name__ == '__main__':
     loader = Thread(target=thread_setpoint_loader)
     loader.start()
     time.sleep(0.2)
+
+    # Start all controllers
+    CON = [pid_thrust,pid_pitch,pid_roll,pid_yaw,lead_thrust]
+    for controller in CON:
+        controller.start()
+
     main = Thread(target=thread_main_loop)
     main.start()
 
