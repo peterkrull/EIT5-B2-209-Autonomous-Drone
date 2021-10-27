@@ -1,3 +1,5 @@
+import time
+
 class control:
 
     """
@@ -64,6 +66,16 @@ class control:
 
         """
         def __init__(self,Kp = None, Ki = None,Kd = None,mode = "classic") -> object:
+            """
+            
+            if self.mode == "classic":
+                return P + I + D
+            if self.mode == "modcon":
+                return P * ( 1 + I + D )
+            if self.mode == "modconx":
+                return P * ( 1 + (1/I) + D )
+            
+            """
             self.mode = mode
             self.Kp,self.Ki,self.Kd = Kp,Ki,Kd
             if self.Kp:
@@ -113,4 +125,28 @@ class control:
                 return P * ( 1 + (1/I) + D )
 
 
+    class lead_lag_comp():
+        """
+        Discrete time lead-lag compensator of the form k*(s+a)/(s+b)
 
+        Args:
+            a (float) : Location of zero
+            b (float) : Location of pole
+            k (float) : Amount of gain
+        """
+        def __init__(self,a = 0,b = 0,k = 1):
+            self.a = a
+            self.b = b
+            self.k = k
+
+        def start(self,init_error,init_output):
+            self.prev_time = time.time()
+            self.prev_error = init_error
+            self.prev_output = init_output
+
+        def update(self,error):
+            T = time.time()-self.prev_time
+            output = (self.k/((1/T)*self.b))*(((error-self.prev_error)/T)+self.a*(error))+(1/(1+(T*self.b)))*self.prev_output
+            self.prev_output = output
+            self.prev_error = error
+            return output

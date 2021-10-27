@@ -1,6 +1,6 @@
 from data_logger import logger
 from easyflie import easyflie
-from pid_control import control
+from controllers import control
 from raspberry_socketreader import viconUDP
 from threading import Thread
 import json
