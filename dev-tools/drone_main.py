@@ -32,7 +32,20 @@ def thread_main_loop():
         thrust = pid_thrust.update(z_error)*lead_thrust.update(z_error) + hover_thrust
         pitch = pid_pitch.update(x_error)
         roll = pid_roll.update(y_error)
-        yaw = pid_yaw.update(None) #?
+        yaw = pid_yaw.update(0) #?
+
+        # Set hard cap to output values
+        thrust = thrust_lim[0] if thrust < thrust_lim[0] else thrust
+        thrust = thrust_lim[1] if thrust > thrust_lim[1] else thrust
+
+        pitch = pitchroll_lim[0] if pitch < pitchroll_lim[0] else pitch
+        pitch = pitchroll_lim[1] if pitch > pitchroll_lim[1] else pitch
+
+        roll = pitchroll_lim[0] if roll < pitchroll_lim[0] else roll
+        roll = pitchroll_lim[1] if roll > pitchroll_lim[1] else roll
+
+        yaw = yaw_lim[0] if yaw < yaw_lim[0] else yaw
+        yaw = yaw_lim[1] if yaw > yaw_lim[1] else yaw
 
         # Send updated control params
         cf.send_setpoint(roll,pitch,yaw,thrust)
@@ -46,6 +59,11 @@ if __name__ == '__main__':
     gravity = 9.81 # m/s²
     grav_force = drone_mass*gravity
     vicon_freq = 300
+
+    # command limits
+    thrust_lim      = [10000, 65535]
+    pitchroll_lim   = [-40 , 40]
+    yaw_lim         = [-180,180]
 
     # Setup vicon udp reader and logger
     vicon_udp = viconUDP()
@@ -65,8 +83,6 @@ if __name__ == '__main__':
     lead_thrust = control.lead_lag_comp(a=0,b=1,k=int(10e3))
     lead_pitch = control.lead_lag_comp(a=0,b=1)
     lead_roll = control.lead_lag_comp(a=0,b=1)
-
-
 
     # Tells treads to keep running
     running = True
