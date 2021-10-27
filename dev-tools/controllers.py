@@ -55,25 +55,23 @@ class control:
 
     # Combined P, I and/or D controller.
     class PID:
-        """
-        Complete PID controller complete PID control, with ability to use
-        any combination of P, I and D and user-defined Kp, Ki and Kd constants.
 
-        Args:
-            Kp (float) : Proportional constant
-            Ki (float) : Integrator constant
-            Kd (float) : Derivator constant
-
-        """
         def __init__(self,Kp = None, Ki = None,Kd = None,mode = "classic") -> object:
             """
-            
-            if self.mode == "classic":
-                return P + I + D
-            if self.mode == "modcon":
-                return P * ( 1 + I + D )
-            if self.mode == "modconx":
-                return P * ( 1 + (1/I) + D )
+            Complete PID controller complete PID control, with ability to use
+            any combination of P, I and D and user-defined Kp, Ki and Kd constants.
+
+
+            Args:
+                Kp (float) : Proportional constant
+                Ki (float) : Integral constant
+                Kd (float) : Derivative constant
+                mode (str) : Output mode, supports 'classic','modcon' and 'modconx'
+
+            More about 'mode' output
+                classic : P + I + D
+                modcon  : P * ( 1 + I + D )
+                modconx : P * ( 1 + (1/I) + D )
             
             """
             self.mode = mode
@@ -140,11 +138,24 @@ class control:
             self.k = k
 
         def start(self,init_error,init_output):
+            """
+            Starts the controller
+            """
             self.prev_time = time.time()
             self.prev_error = init_error
             self.prev_output = init_output
 
         def update(self,error):
+            """
+            Updates the controllers with a new error 
+            and calculates the appropriate correction.
+
+            Args:
+                error (float) : error to correct
+
+            Returns (float) : correction
+
+            """
             T = time.time()-self.prev_time
             output = (self.k/((1/T)*self.b))*(((error-self.prev_error)/T)+self.a*(error))+(1/(1+(T*self.b)))*self.prev_output
             self.prev_output = output
