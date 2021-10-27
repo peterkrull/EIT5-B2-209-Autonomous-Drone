@@ -38,7 +38,7 @@ def thread_main_loop():
         thrust = control.limiter(thrust,thrust_lim[0],thrust_lim[1])
         pitch = control.limiter(pitch,pitchroll_lim[0],pitchroll_lim[1])
         roll = control.limiter(roll,pitchroll_lim[0],pitchroll_lim[1])
-        yaw = control.limiter(yaw,pid_yaw[0],pid_yaw[1])
+        yaw = control.limiter(yaw,yaw_lim[0],yaw_lim[1])
 
         # Limit to only thrust
         pitch, roll, yaw = 0,0,0
