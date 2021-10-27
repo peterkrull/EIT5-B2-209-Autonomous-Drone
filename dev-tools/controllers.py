@@ -137,13 +137,13 @@ class control:
             self.b = b
             self.k = k
 
-        def start(self,init_error,init_output):
+        def start(self):
             """
             Starts the controller
             """
             self.prev_time = time.time()
-            self.prev_error = init_error
-            self.prev_output = init_output
+            self.prev_error = 0
+            self.prev_output = 0
 
         def update(self,error):
             """

@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
     # command limits
     thrust_lim      = [10000, 65535]
-    pitchroll_lim   = [-40 , 40]
+    pitchroll_lim   = [-20 , 20]
     yaw_lim         = [-180,180]
 
     # Setup vicon udp reader and logger
@@ -70,13 +70,13 @@ if __name__ == '__main__':
     cf.send_start_setpoint()
 
     # Setup PID control for all axes
-    pid_thrust = control.PID()
+    pid_thrust = control.PID(2e3,100,800)
     pid_pitch = control.PID()
     pid_roll = control.PID()
     pid_yaw = control.PID()
 
     # Setup lead-lag controllers
-    lead_thrust = control.lead_lag_comp(a=0,b=1,k=int(60e3))
+    lead_thrust = control.lead_lag_comp(a=0,b=0.85)
     lead_pitch = control.lead_lag_comp(a=0,b=1)
     lead_roll = control.lead_lag_comp(a=0,b=1)
 
