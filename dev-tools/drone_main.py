@@ -1,6 +1,6 @@
 from data_logger import logger
 from easyflie import easyflie
-from pid_control import control
+from controllers import control
 from raspberry_socketreader import viconUDP
 from threading import Thread
 import json
@@ -29,10 +29,23 @@ def thread_main_loop():
         z_error = (setpoint.get('z')-vicon_data[2])/1000
         
         # Get updated control from PID
-        thrust = pid_thrust.update(z_error) + hover_thrust
+        thrust = pid_thrust.update(z_error)*lead_thrust.update(z_error) + hover_thrust
         pitch = pid_pitch.update(x_error)
         roll = pid_roll.update(y_error)
-        yaw = pid_yaw.update(None) #?
+        yaw = pid_yaw.update(0) #?
+
+        # Set hard cap to output values
+        thrust = thrust_lim[0] if thrust < thrust_lim[0] else thrust
+        thrust = thrust_lim[1] if thrust > thrust_lim[1] else thrust
+
+        pitch = pitchroll_lim[0] if pitch < pitchroll_lim[0] else pitch
+        pitch = pitchroll_lim[1] if pitch > pitchroll_lim[1] else pitch
+
+        roll = pitchroll_lim[0] if roll < pitchroll_lim[0] else roll
+        roll = pitchroll_lim[1] if roll > pitchroll_lim[1] else roll
+
+        yaw = yaw_lim[0] if yaw < yaw_lim[0] else yaw
+        yaw = yaw_lim[1] if yaw > yaw_lim[1] else yaw
 
         # Send updated control params
         cf.send_setpoint(roll,pitch,yaw,thrust)
@@ -47,6 +60,11 @@ if __name__ == '__main__':
     grav_force = drone_mass*gravity
     vicon_freq = 300
 
+    # command limits
+    thrust_lim      = [10000, 65535]
+    pitchroll_lim   = [-40 , 40]
+    yaw_lim         = [-180,180]
+
     # Setup vicon udp reader and logger
     vicon_udp = viconUDP()
     vicon_log = logger("vicon_log")
@@ -56,14 +74,15 @@ if __name__ == '__main__':
     cf.send_start_setpoint()
 
     # Setup PID control for all axes
-    pid_thrust = control.PID(Kp=5000)
-    pid_pitch = control.PID(0)
-    pid_roll = control.PID(0)
-    pid_yaw = control.PID(0)
+    pid_thrust = control.PID()
+    pid_pitch = control.PID()
+    pid_roll = control.PID()
+    pid_yaw = control.PID()
 
-    PID = [pid_thrust,pid_pitch,pid_roll,pid_yaw]
-    for pid in PID:
-        pid.start()
+    # Setup lead-lag controllers
+    lead_thrust = control.lead_lag_comp(a=0,b=1,k=int(10e3))
+    lead_pitch = control.lead_lag_comp(a=0,b=1)
+    lead_roll = control.lead_lag_comp(a=0,b=1)
 
     # Tells treads to keep running
     running = True
@@ -72,6 +91,12 @@ if __name__ == '__main__':
     loader = Thread(target=thread_setpoint_loader)
     loader.start()
     time.sleep(0.2)
+
+    # Start all controllers
+    CON = [pid_thrust,pid_pitch,pid_roll,pid_yaw,lead_thrust]
+    for controller in CON:
+        controller.start()
+
     main = Thread(target=thread_main_loop)
     main.start()
 
