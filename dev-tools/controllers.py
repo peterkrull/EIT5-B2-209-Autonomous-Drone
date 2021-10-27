@@ -3,11 +3,9 @@ import time
 class control:
 
     """
-    Class that allows for PID control. Methods are the `proportional` gain,
-    `derivative` and `integral` functions. The derivative and integral methods
-    automatically calculate the time difference. The `PID` method allows
-    for complete PID control, either using all of PID or parts, such as P, PI, PD
-    and so on.
+    Class that contains various methods useful for descrete time control-systems.
+    Methods are the `proportional` gain, `derivative` and `integral` functions. as
+    well as a complete PID controller and a lead-lag implementation using `lead_lag_comp`.
     """
 
     # Proportional gain
