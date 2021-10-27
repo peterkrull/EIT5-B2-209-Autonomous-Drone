@@ -160,7 +160,12 @@ class control:
 
     def limiter(value,min,max):
         """
-        Limit filter to set some `value` to equal to `min` or `max` if out of bounds
+        Limit filter to set some `value` to equal to `min` or `max` if out of bounds.
+
+        Args:
+            value (float) : Value to limit between `min` and `max`
+            min (float) : Minimum allowed value
+            max (float) : Maximum allowed value
         """
         if value < min:
             return min
