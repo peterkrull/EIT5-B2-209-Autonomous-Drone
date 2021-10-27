@@ -56,7 +56,7 @@ class control:
     # Combined P, I and/or D controller.
     class PID:
 
-        def __init__(self,Kp = None, Ki = None,Kd = None,mode = "classic") -> object:
+        def __init__(self,Kp = None, Ki = None,Kd = None,form = "parallel") -> object:
             """
             Complete PID controller complete PID control, with ability to use
             any combination of P, I and D and user-defined Kp, Ki and Kd constants.
@@ -66,15 +66,14 @@ class control:
                 Kp (float) : Proportional constant
                 Ki (float) : Integral constant
                 Kd (float) : Derivative constant
-                mode (str) : Output mode, supports 'classic','modcon' and 'modconx'
+                form (str) : Output form, supports 'parallel' and 'ideal', see below
 
-            More about 'mode' output
-                classic : P + I + D
-                modcon  : P * ( 1 + I + D )
-                modconx : P * ( 1 + (1/I) + D )
+            More about 'form' output
+                parallel : P + I + D
+                ideal  : P * ( 1 + I + D )
             
             """
-            self.mode = mode
+            self.form = form
             self.Kp,self.Ki,self.Kd = Kp,Ki,Kd
             if self.Kp:
                 #print("Setting P gain to : {}".format(Kp))
@@ -115,12 +114,10 @@ class control:
             if self.Kd:
                 D = self.d.update(error)
 
-            if self.mode == "classic":
+            if self.form == "parallel":
                 return P + I + D
-            if self.mode == "modcon":
+            if self.form == "ideal":
                 return P * ( 1 + I + D )
-            if self.mode == "modconx":
-                return P * ( 1 + (1/I) + D )
 
 
     class lead_lag_comp():
