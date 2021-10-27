@@ -29,7 +29,7 @@ def thread_main_loop():
         z_error = (setpoint.get('z')-vicon_data[2])/1000
         
         # Get updated control from PID
-        thrust = pid_thrust.update(z_error) + hover_thrust
+        thrust = pid_thrust.update(z_error)*lead_thrust.update(z_error) + hover_thrust
         pitch = pid_pitch.update(x_error)
         roll = pid_roll.update(y_error)
         yaw = pid_yaw.update(None) #?
@@ -56,14 +56,18 @@ if __name__ == '__main__':
     cf.send_start_setpoint()
 
     # Setup PID control for all axes
-    pid_thrust = control.PID(Kp=5000)
+    pid_thrust = control.PID(Kp=1)
     pid_pitch = control.PID(0)
     pid_roll = control.PID(0)
     pid_yaw = control.PID(0)
 
-    PID = [pid_thrust,pid_pitch,pid_roll,pid_yaw]
-    for pid in PID:
-        pid.start()
+    # Setup lead-lag controllers
+    lead_thrust = control.lead_lag_comp(a=0,b=1)
+
+    # Start all controllers
+    CON = [pid_thrust,pid_pitch,pid_roll,pid_yaw,lead_thrust]
+    for controller in CON:
+        controller.start()
 
     # Tells treads to keep running
     running = True
