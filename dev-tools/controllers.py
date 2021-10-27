@@ -161,3 +161,14 @@ class control:
             self.prev_output = output
             self.prev_error = error
             return output
+
+    def limiter(value,min,max):
+        """
+        Limit filter to set some `value` to equal to `min` or `max` if out of bounds
+        """
+        if value < min:
+            return min
+        elif value > max:
+            return max
+        else:
+            return value

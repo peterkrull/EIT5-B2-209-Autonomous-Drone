@@ -35,17 +35,13 @@ def thread_main_loop():
         yaw = pid_yaw.update(0) #?
 
         # Set hard cap to output values
-        thrust = thrust_lim[0] if thrust < thrust_lim[0] else thrust
-        thrust = thrust_lim[1] if thrust > thrust_lim[1] else thrust
+        thrust = control.limiter(thrust,thrust_lim[0],thrust_lim[1])
+        pitch = control.limiter(pitch,pitchroll_lim[0],pitchroll_lim[1])
+        roll = control.limiter(roll,pitchroll_lim[0],pitchroll_lim[1])
+        yaw = control.limiter(yaw,pid_yaw[0],pid_yaw[1])
 
-        pitch = pitchroll_lim[0] if pitch < pitchroll_lim[0] else pitch
-        pitch = pitchroll_lim[1] if pitch > pitchroll_lim[1] else pitch
-
-        roll = pitchroll_lim[0] if roll < pitchroll_lim[0] else roll
-        roll = pitchroll_lim[1] if roll > pitchroll_lim[1] else roll
-
-        yaw = yaw_lim[0] if yaw < yaw_lim[0] else yaw
-        yaw = yaw_lim[1] if yaw > yaw_lim[1] else yaw
+        # Limit to only thrust
+        pitch, roll, yaw = 0,0,0
 
         # Send updated control params
         cf.send_setpoint(roll,pitch,yaw,thrust)
@@ -80,7 +76,7 @@ if __name__ == '__main__':
     pid_yaw = control.PID()
 
     # Setup lead-lag controllers
-    lead_thrust = control.lead_lag_comp(a=0,b=1,k=int(10e3))
+    lead_thrust = control.lead_lag_comp(a=0,b=1,k=int(60e3))
     lead_pitch = control.lead_lag_comp(a=0,b=1)
     lead_roll = control.lead_lag_comp(a=0,b=1)
 
