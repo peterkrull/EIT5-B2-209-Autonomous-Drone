@@ -150,8 +150,10 @@ class control:
 
             Returns (float) : correction
             """
-            T = time.time()-self.prev_time
+            xtime = time.time()
+            T = xtime-self.prev_time
             output = (self.k*(error*(1+self.a*T)-self.prev_error)+self.prev_output)/(1+self.b*T)
+            self.prev_time = xtime
             self.prev_output = output
             self.prev_error = error
             return output
