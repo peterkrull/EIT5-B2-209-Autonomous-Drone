@@ -29,7 +29,7 @@ def thread_main_loop():
         z_error = (setpoint.get('z')-vicon_data[2])/1000
         
         # Get updated control from PID
-        thrust = pid_thrust.update(z_error)*lead_thrust.update(z_error) + hover_thrust
+        thrust = lead_thrust.update(pid_thrust.update(z_error)) + hover_thrust
         pitch = pid_pitch.update(x_error)
         roll = pid_roll.update(y_error)
         yaw = pid_yaw.update(0) #?
