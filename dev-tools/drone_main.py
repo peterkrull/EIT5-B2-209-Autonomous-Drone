@@ -1,51 +1,77 @@
-from data_logger import logger
-from easyflie import easyflie
-from controllers import control
-from raspberry_socketreader import viconUDP
-from threading import Thread
 import json
 import time
+from threading import Thread
+
+from controllers import control
+from data_logger import logger
+from easyflie import easyflie
+from raspberry_socketreader import viconUDP
+
+# Enable logs
+log = True
+log_error = True
+log_sp = True
+log_cal = True
+log_lim = True
 
 # Constantly load setpoint from file
 def thread_setpoint_loader():
-    global setpoint,running
+    global sp,running
     while running:
-        try: setpoint = json.load(open("dev-tools/const_setpoint.json"))
-        except FileNotFoundError: setpoint = json.load(open("const_setpoint.json"))
+        try: sp = json.load(open("dev-tools/const_setpoint.json"))
+        except FileNotFoundError: sp = json.load(open("const_setpoint.json"))
         time.sleep(0.5)
 
 # Main program / control loop
 def thread_main_loop():
-    global setpoint,running
+    global sp,running
+
+    # Add column title to log file
+    if log : col_titles = ['time','x_pos','y_pos','z_pos','x_rot','y_rot','z_rot']   # LOG CLUSTER 1
+    if log and log_error : col_titles += ['x_error','y_error','z_error']                           # LOG CLUSTER 2
+    if log and log_sp : col_titles += ['x_setpoint','y_setpoint','z_setpoint']                  # LOG CLUSTER 3
+    if log and log_cal : col_titles += ['thrust_cal','pitch_cal','roll_cal','yaw_cal']           # LOG CLUSTER 4
+    if log and log_lim : col_titles += ['thrust_lim','pitch_lim','roll_lim','yaw_lim']           # LOG CLUSTER 5
+    if log : vicon_log.log_data(col_titles)
+    if log : del col_titles
+
     while running:
         # Get vicon data and log it
         vicon_data = vicon_udp.getTimestampedData() # fetch vicon data
-        vicon_log.log_data(vicon_data) # save data with timestamp
-        vicon_data.pop(0) # remove timestamp from dataset
+        if log : log_data = vicon_data # LOG CLUSTER 1
 
         # Calculate error in position
-        x_error = (setpoint.get('x')-vicon_data[0])/1000
-        y_error = (setpoint.get('y')-vicon_data[1])/1000
-        z_error = (setpoint.get('z')-vicon_data[2])/1000
-        
+        x_error = (sp.get('x')-vicon_data[1])/1000
+        y_error = (sp.get('y')-vicon_data[2])/1000
+        z_error = (sp.get('z')-vicon_data[3])/1000
+        if log and log_error : log_data += [x_error,y_error,z_error] # LOG CLUSTER 2
+        if log and log_sp : log_data += [sp.get('x')/1000,sp.get('y')/1000,sp.get('z')/1000] # LOG CLUSTER 3
+
         # Get updated control from PID
         thrust = lead_thrust.update(pid_thrust.update(z_error)) + hover_thrust
         pitch = pid_pitch.update(x_error)
         roll = pid_roll.update(y_error)
         yaw = pid_yaw.update(0) #?
+        if log and log_cal : log_data += [thrust,pitch,roll,yaw] # LOG CLUSTER 4
 
         # Set hard cap to output values
         thrust = control.limiter(thrust,thrust_lim[0],thrust_lim[1])
         pitch = control.limiter(pitch,pitchroll_lim[0],pitchroll_lim[1])
         roll = control.limiter(roll,pitchroll_lim[0],pitchroll_lim[1])
         yaw = control.limiter(yaw,yaw_lim[0],yaw_lim[1])
+        if log and log_lim : log_data += [thrust,pitch,roll,yaw] # LOG CLUSTER 5
 
         # Limit to only thrust
         pitch, roll, yaw = 0,0,0
 
         # Send updated control params
         cf.send_setpoint(roll,pitch,yaw,thrust)
-        time.sleep(1/(2*vicon_freq)) # allows other threads to run
+
+        # Save all data to log
+        if log : vicon_log.log_data(log_data)
+
+        # Allow other threads to run
+        time.sleep(1/(2*vicon_freq)) 
         
 if __name__ == '__main__':
 
@@ -58,25 +84,25 @@ if __name__ == '__main__':
 
     # command limits
     thrust_lim      = [10000, 65535]
-    pitchroll_lim   = [-20 , 20]
-    yaw_lim         = [-180,180]
+    pitchroll_lim   = [-40 , 40]
+    yaw_lim         = [-360,360]
 
     # Setup vicon udp reader and logger
     vicon_udp = viconUDP()
-    vicon_log = logger("vicon_log")
+    if log : vicon_log = logger("vicon_log")
      
     # setup crazyFlie client
     cf = easyflie()
     cf.send_start_setpoint()
 
     # Setup PID control for all axes
-    pid_thrust = control.PID(2e3,100,800)
+    pid_thrust = control.PID(25e3,0.045,0.45,'ideal')
     pid_pitch = control.PID()
     pid_roll = control.PID()
-    pid_yaw = control.PID()
+    pid_yaw = control.PID(2.33)
 
     # Setup lead-lag controllers
-    lead_thrust = control.lead_lag_comp(a=0,b=0.85)
+    lead_thrust = control.lead_lag_comp(a=0.15,b=0.85)
     lead_pitch = control.lead_lag_comp(a=0,b=1)
     lead_roll = control.lead_lag_comp(a=0,b=1)
 
@@ -100,8 +126,8 @@ if __name__ == '__main__':
     while 1 :
         try: time.sleep(0.2)
         except KeyboardInterrupt:
-            vicon_log.save_file()
-            print("1")
+            if log : vicon_log.save_file()
+            print(">>>> Sending stop command to Crazyflie <<<<")
             cf.send_stop_setpoint()
             running = False
             exit("Exiting program")
