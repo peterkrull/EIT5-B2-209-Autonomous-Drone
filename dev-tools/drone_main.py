@@ -1,6 +1,8 @@
 import json
 import time
+
 from threading import Thread
+from math import pi
 
 from controllers import control
 from data_logger import logger
@@ -27,11 +29,11 @@ def thread_main_loop():
     global sp,running
 
     # Add column title to log file
-    if log : col_titles = ['time','x_pos','y_pos','z_pos','x_rot','y_rot','z_rot']   # LOG CLUSTER 1
-    if log and log_error : col_titles += ['x_error','y_error','z_error']                           # LOG CLUSTER 2
-    if log and log_sp : col_titles += ['x_setpoint','y_setpoint','z_setpoint']                  # LOG CLUSTER 3
-    if log and log_cal : col_titles += ['thrust_cal','pitch_cal','roll_cal','yaw_cal']           # LOG CLUSTER 4
-    if log and log_lim : col_titles += ['thrust_lim','pitch_lim','roll_lim','yaw_lim']           # LOG CLUSTER 5
+    if log : col_titles = ['time','x_pos','y_pos','z_pos','x_rot','y_rot','z_rot']              # LOG CLUSTER 1
+    if log and log_error : col_titles += ['x_error','y_error','z_error','yaw_error']            # LOG CLUSTER 2
+    if log and log_sp : col_titles += ['x_setpoint','y_setpoint','z_setpoint','yaw_setpoint']   # LOG CLUSTER 3
+    if log and log_cal : col_titles += ['thrust_cal','pitch_cal','roll_cal','yaw_cal']          # LOG CLUSTER 4
+    if log and log_lim : col_titles += ['thrust_lim','pitch_lim','roll_lim','yaw_lim']          # LOG CLUSTER 5
     if log : vicon_log.log_data(col_titles)
     if log : del col_titles
 
@@ -40,18 +42,20 @@ def thread_main_loop():
         vicon_data = vicon_udp.getTimestampedData() # fetch vicon data
         if log : log_data = vicon_data # LOG CLUSTER 1
 
-        # Calculate error in position
+        # Calculate error in position and yaw
         x_error = (sp.get('x')-vicon_data[1])/1000
         y_error = (sp.get('y')-vicon_data[2])/1000
         z_error = (sp.get('z')-vicon_data[3])/1000
-        if log and log_error : log_data += [x_error,y_error,z_error] # LOG CLUSTER 2
-        if log and log_sp : log_data += [sp.get('x')/1000,sp.get('y')/1000,sp.get('z')/1000] # LOG CLUSTER 3
+        yaw_error = sp.get('yaw')-(vicon_data[6]*(180/pi))
+        if log and log_error : log_data += [x_error,y_error,z_error,yaw_error] # LOG CLUSTER 2
+        if log and log_sp : log_data += [sp.get('x')/1000,sp.get('y')/1000,sp.get('z')/1000,sp.get('z')] # LOG CLUSTER 3
 
         # Get updated control from PID
-        thrust = lead_thrust.update(pid_thrust.update(z_error)) + hover_thrust
+        thrust = lead_thrust.update(z_error) + hover_thrust
+        #thrust = lead_thrust.update(pid_thrust.update(z_error)) + hover_thrust
         pitch = pid_pitch.update(x_error)
         roll = pid_roll.update(y_error)
-        yaw = pid_yaw.update(0) #?
+        yaw = pid_yaw.update(yaw_error) #?
         if log and log_cal : log_data += [thrust,pitch,roll,yaw] # LOG CLUSTER 4
 
         # Set hard cap to output values
