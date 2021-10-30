@@ -2,7 +2,7 @@ import json
 import time
 
 from threading import Thread
-from math import pi
+from math import pi,cos
 
 from controllers import control
 from data_logger import logger
@@ -51,11 +51,14 @@ def thread_main_loop():
         if log and log_sp : log_data += [sp.get('x')/1000,sp.get('y')/1000,sp.get('z')/1000,sp.get('z')] # LOG CLUSTER 3
 
         # Get updated control from PID
-        thrust = lead_thrust.update(z_error) + hover_thrust
-        #thrust = lead_thrust.update(pid_thrust.update(z_error)) + hover_thrust
         pitch = pid_pitch.update(y_error)
         roll = pid_roll.update(x_error)
         yaw = pid_yaw.update(yaw_error) #?
+
+        #thrust = lead_thrust.update(z_error) + hover_thrust
+        #thrust = lead_thrust.update(pid_thrust.update(z_error)) + hover_thrust
+        thrust = (lead_thrust.update(z_error) + hover_thrust)/(cos(pitch*pi/180)*cos(roll*pi/180))
+
         if log and log_cal : log_data += [thrust,pitch,roll,yaw] # LOG CLUSTER 4
 
         # Set hard cap to output values
