@@ -53,11 +53,11 @@ def thread_main_loop():
         # Get updated control from PID
         pitch = pid_pitch.update(y_error)
         roll = pid_roll.update(x_error)
-        yaw = pid_yaw.update(yaw_error) #?
+        yaw = pid_yaw.update(yaw_error)
+        thrust = lead_thrust.update(z_error) + hover_thrust
 
-        #thrust = lead_thrust.update(z_error) + hover_thrust
-        #thrust = lead_thrust.update(pid_thrust.update(z_error)) + hover_thrust
-        thrust = (lead_thrust.update(z_error) + hover_thrust)/(cos(pitch*pi/180)*cos(roll*pi/180))
+        # Thrust compensation
+        thrust = thrust/(cos(pitch*pi/180)*cos(roll*pi/180))
 
         if log and log_cal : log_data += [thrust,pitch,roll,yaw] # LOG CLUSTER 4
 
