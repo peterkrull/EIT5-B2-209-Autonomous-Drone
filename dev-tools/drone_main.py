@@ -54,7 +54,7 @@ def thread_main_loop():
         pitch = pid_pitch.update(y_error)
         roll = pid_roll.update(x_error)
         yaw = pid_yaw.update(yaw_error)
-        thrust = lead_thrust.update(z_error) + hover_thrust
+        thrust = pid_thrust.update(z_error) + hover_thrust
 
         # Thrust compensation
         thrust = thrust/(cos(pitch*pi/180)*cos(roll*pi/180))
@@ -100,15 +100,15 @@ if __name__ == '__main__':
     cf.send_start_setpoint()
 
     # Setup PID control for all axes
-    pid_thrust = control.PID(25e3,100,10e3)
+    pid_thrust = control.PID(25e3,0,15e3)
     pid_pitch = control.PID(40,0,32)
     pid_roll = control.PID(40,0,32)
     pid_yaw = control.PID(15,0,1.5)
 
-    # Setup lead-lag controllers
-    lead_thrust = control.lead_lag_comp(a=0.15,b=0.85)
-    lead_pitch = control.lead_lag_comp(a=0,b=1)
-    lead_roll = control.lead_lag_comp(a=0,b=1)
+    # # Setup lead-lag controllers
+    # lead_thrust = control.lead_lag_comp(a=0.15,b=0.85)
+    # lead_pitch = control.lead_lag_comp(a=0,b=1)
+    # lead_roll = control.lead_lag_comp(a=0,b=1)
 
     # Tells treads to keep running
     running = True
@@ -119,7 +119,7 @@ if __name__ == '__main__':
     time.sleep(0.2)
 
     # Start all controllers
-    CON = [pid_thrust,pid_pitch,pid_roll,pid_yaw,lead_thrust]
+    CON = [pid_thrust,pid_pitch,pid_roll,pid_yaw]
     for controller in CON:
         controller.start()
 
