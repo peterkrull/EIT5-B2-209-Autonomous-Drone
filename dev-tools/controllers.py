@@ -20,17 +20,15 @@ class control:
     class derivative:
         def __init__(self,K):
             self.K = K
-            import time
-            self.time = time.time
-            self.prev_time = self.time()
 
         def start(self):
-            self.prev_time = self.time()
+            self.prev_time = time.time()
             self.prev_erro = 0
 
         def update(self,error):
-            derivative = ((error-self.prev_erro)*self.K)/(self.time()-self.prev_time)
-            self.prev_time = self.time()
+            xtime = time.time()
+            derivative = ((error-self.prev_erro)*self.K)/(xtime-self.prev_time)
+            self.prev_time = xtime
             self.prev_erro = error
             return derivative
             
@@ -38,17 +36,15 @@ class control:
     class integral:
         def __init__(self,K):
             self.K = K
-            import time
-            self.time = time.time
-            self.prev_time = self.time()
             
         def start(self):
-            self.prev_time = self.time()
+            self.prev_time = time.time()
             self.integral = 0
 
         def update(self,error):
-            self.integral += ((error)*self.K)*(self.time()-self.prev_time)
-            self.prev_time = self.time()
+            xtime = time.time()
+            self.integral += ((error)*self.K)*(xtime-self.prev_time)
+            self.prev_time = xtime
             return self.integral
 
     # Combined P, I and/or D controller.

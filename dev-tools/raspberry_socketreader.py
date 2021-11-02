@@ -32,8 +32,8 @@ class viconUDP:
         data, addr = self.in_sock.recvfrom(4096) # buffer size is 1024 bytes
 
         xdata = [s.unpack_from('d', data, 32+i*8)[0] for i in range(6)]
-        if unix_time:   xdata.insert(0,time.time())
-        else:           xdata.insert(0,time.time()-self.time_start)
+        if unix_time: xdata.insert(0,time.time())
+        else: xdata.insert(0,time.time()-self.time_start)
         return xdata
 
 if __name__ == '__main__':

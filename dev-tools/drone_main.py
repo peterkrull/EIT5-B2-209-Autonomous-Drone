@@ -2,7 +2,7 @@ import json
 import time
 
 from threading import Thread
-from math import pi
+from math import pi,cos
 
 from controllers import control
 from data_logger import logger
@@ -46,16 +46,20 @@ def thread_main_loop():
         x_error = (sp.get('x')-vicon_data[1])/1000
         y_error = (sp.get('y')-vicon_data[2])/1000
         z_error = (sp.get('z')-vicon_data[3])/1000
-        yaw_error = sp.get('yaw')-(vicon_data[6]*(180/pi))
+        #yaw_error = -(sp.get('yaw')-(vicon_data[6]*(180/pi))) # Fall back to this one
+        yaw_error = sp.get('yaw')+(vicon_data[6]*(180/pi)) # Try this configuration
         if log and log_error : log_data += [x_error,y_error,z_error,yaw_error] # LOG CLUSTER 2
         if log and log_sp : log_data += [sp.get('x')/1000,sp.get('y')/1000,sp.get('z')/1000,sp.get('z')] # LOG CLUSTER 3
 
         # Get updated control from PID
-        thrust = lead_thrust.update(z_error) + hover_thrust
-        #thrust = lead_thrust.update(pid_thrust.update(z_error)) + hover_thrust
-        pitch = pid_pitch.update(x_error)
-        roll = pid_roll.update(y_error)
-        yaw = pid_yaw.update(yaw_error) #?
+        pitch = pid_pitch.update(y_error)
+        roll = pid_roll.update(x_error)
+        yaw = pid_yaw.update(yaw_error)
+        thrust = pid_thrust.update(z_error) + hover_thrust
+
+        # Thrust compensation
+        thrust = thrust/(cos(pitch*pi/180)*cos(roll*pi/180))
+
         if log and log_cal : log_data += [thrust,pitch,roll,yaw] # LOG CLUSTER 4
 
         # Set hard cap to output values
@@ -65,11 +69,8 @@ def thread_main_loop():
         yaw = control.limiter(yaw,yaw_lim[0],yaw_lim[1])
         if log and log_lim : log_data += [thrust,pitch,roll,yaw] # LOG CLUSTER 5
 
-        # Limit to only thrust
-        pitch, roll, yaw = 0,0,0
-
         # Send updated control params
-        cf.send_setpoint(roll,pitch,yaw,thrust)
+        cf.send_setpoint(roll,pitch,yaw,int(thrust))
 
         # Save all data to log
         if log : vicon_log.log_data(log_data)
@@ -88,7 +89,7 @@ if __name__ == '__main__':
 
     # command limits
     thrust_lim      = [10000, 65535]
-    pitchroll_lim   = [-40 , 40]
+    pitchroll_lim   = [-10 , 10]
     yaw_lim         = [-360,360]
 
     # Setup vicon udp reader and logger
@@ -100,15 +101,15 @@ if __name__ == '__main__':
     cf.send_start_setpoint()
 
     # Setup PID control for all axes
-    pid_thrust = control.PID(25e3,0.045,0.45,'ideal')
-    pid_pitch = control.PID()
-    pid_roll = control.PID()
-    pid_yaw = control.PID(2.33)
+    pid_thrust = control.PID(25e3,0,15e3)
+    pid_pitch = control.PID(40,0,32)
+    pid_roll = control.PID(40,0,32)
+    pid_yaw = control.PID(15,0,1.5)
 
-    # Setup lead-lag controllers
-    lead_thrust = control.lead_lag_comp(a=0.15,b=0.85)
-    lead_pitch = control.lead_lag_comp(a=0,b=1)
-    lead_roll = control.lead_lag_comp(a=0,b=1)
+    # # Setup lead-lag controllers
+    # lead_thrust = control.lead_lag_comp(a=0.15,b=0.85)
+    # lead_pitch = control.lead_lag_comp(a=0,b=1)
+    # lead_roll = control.lead_lag_comp(a=0,b=1)
 
     # Tells treads to keep running
     running = True
@@ -119,7 +120,7 @@ if __name__ == '__main__':
     time.sleep(0.2)
 
     # Start all controllers
-    CON = [pid_thrust,pid_pitch,pid_roll,pid_yaw,lead_thrust]
+    CON = [pid_thrust,pid_pitch,pid_roll,pid_yaw]
     for controller in CON:
         controller.start()
 
