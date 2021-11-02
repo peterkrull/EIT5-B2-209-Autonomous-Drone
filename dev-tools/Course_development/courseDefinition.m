@@ -1,4 +1,4 @@
-xclear
+clear
 set(findall(gcf,'-property','FontSize'),'FontSize',13)
 set(findall(gcf,'-property','Font'),'Font','Roman')
 
@@ -78,3 +78,5 @@ plotwidth=600;
 height=300;
 set(gcf,'position',[x0,y0,plotwidth,height])
    
+
+writematrix(totalCourse,'courseDescriptionHD.csv');

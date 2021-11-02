@@ -1,0 +1,16 @@
+courseHD = readmatrix('courseDescriptionHD.csv');
+
+pfRadius = 1; %Radius of the pathfollowing algorithme in meters
+
+newCourse = courseHD(1,:);
+numOfCoor = 1;
+
+for i = 2:length(courseHD)
+   vec = courseHD(i)-newCourse(numCoor);
+   
+   if pfRadius < norm(vec)
+       numOfCoor = numOfCoor +1;
+       newCourse = [newCourse;courseHD(i);
+   end
+    
+end
