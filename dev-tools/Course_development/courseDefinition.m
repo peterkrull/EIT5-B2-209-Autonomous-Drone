@@ -1,4 +1,4 @@
-clear
+xclear
 set(findall(gcf,'-property','FontSize'),'FontSize',13)
 set(findall(gcf,'-property','Font'),'Font','Roman')
 
