@@ -18,3 +18,9 @@ end
 %plot3(courseHD(:,1),courseHD(:,2),courseHD(:,3),'x')
 plot3(newCourse(:,1),newCourse(:,2),newCourse(:,3),'o')
 grid on
+
+yaw = zeros(length(newCourse),1);
+
+newCourse = [newCourse yaw];
+
+writematrix(newCourse,'courseToFollow.csv')
