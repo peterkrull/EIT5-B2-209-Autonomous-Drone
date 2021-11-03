@@ -6,7 +6,7 @@ newCourse = courseHD(1,:);
 numOfCoor = 1;
 
 for i = 2:length(courseHD)
-   vec = courseHD(i,:)-newCourse(numOfCoor,:);
+   vec = newCourse(numOfCoor,:)-courseHD(i,:);
    
    if pfRadius < norm(vec)
        numOfCoor = numOfCoor +1;

@@ -3,14 +3,15 @@ set(findall(gcf,'-property','FontSize'),'FontSize',13)
 set(findall(gcf,'-property','Font'),'Font','Roman')
 
 
-areaWidth = 2.05;
-areaHeight = 3.45;
-courseWidth = .15;
+areaWidth = 2.05; %Width of the flight area
+areaHeight = 3.45; %Height of the flight area
+courseWidth = .15; %Buffer around route
+ppRoute = 400; %Points per route segment
 
 startPoint = [areaWidth/2 areaHeight/2 1];
 
 firstSetPoint = [startPoint(1)-(areaWidth-courseWidth) startPoint(2) 1];
-courseToFirstSetPoint = [linspace(startPoint(1),firstSetPoint(1),100); linspace(startPoint(2),firstSetPoint(2),100);linspace(startPoint(3),firstSetPoint(3),100)]';
+courseToFirstSetPoint = [linspace(startPoint(1),firstSetPoint(1),ppRoute); linspace(startPoint(2),firstSetPoint(2),ppRoute);linspace(startPoint(3),firstSetPoint(3),ppRoute)]';
 totalCourse = [courseToFirstSetPoint];
 
 secondSetPoint = [firstSetPoint(1) firstSetPoint(2)-1 1];
