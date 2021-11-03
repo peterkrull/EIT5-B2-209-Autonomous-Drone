@@ -39,10 +39,10 @@ class PathFollow:
             self.count +=1          
 
         if not (self.count >= len(self.path)):
-            return {"x":self.path[self.count][0],
-                    "y":self.path[self.count][1],
-                    "z":self.path[self.count][2],
-                    "yaw":self.path[self.count][3]} 
+            return {"x":float(self.path[self.count][0]),
+                    "y":float(self.path[self.count][1]),
+                    "z":float(self.path[self.count][2]),
+                    "yaw":float(self.path[self.count][3])} 
        
         # return xRef, yRef, zRef, Yaw
 
