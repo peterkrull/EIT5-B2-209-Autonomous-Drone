@@ -24,6 +24,6 @@ yaw = zeros(length(newCourse),1);
 newCourse = [newCourse yaw];
 
 toAdd = [newCourse(numOfCoor,1) newCourse(numOfCoor,2) .2 0]
-newCourse = [newCourse; toAdd]*1000;
+newCourse = [newCourse; toAdd]*750;
 
 writematrix(newCourse,'courseToFollow.csv')
