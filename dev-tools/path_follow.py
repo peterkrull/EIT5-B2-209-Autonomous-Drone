@@ -35,7 +35,7 @@ class PathFollow:
         distPosToRef = math.sqrt((float(self.path[self.count][0]) - position[1])**2 + (
             float(self.path[self.count][1]) - position[2])**2 + (float(self.path[self.count][2]) - position[3])**2)
         print("SP",self.path[self.count])
-        print("CO",position)
+        print("CO",position[1],position[2],position[3])
         print("DS",distPosToRef)
         if(distPosToRef < self.radiusUpdate):     #Hvis inden for radius til 
             self.count +=1          
