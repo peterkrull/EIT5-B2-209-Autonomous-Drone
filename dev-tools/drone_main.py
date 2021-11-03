@@ -27,6 +27,7 @@ def thread_setpoint_loader():
 
 def thread_setpoint_loader2():
     global sp,running,vicon_data,path
+    vicon_data = [0,0,0,0]
     while running:
         sp = path.getRef(vicon_data[1],vicon_data[2],vicon_data[3]) 
         time.sleep(0.1)
