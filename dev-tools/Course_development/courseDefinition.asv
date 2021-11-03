@@ -1,7 +1,7 @@
 clear
 set(findall(gcf,'-property','FontSize'),'FontSize',13)
 set(findall(gcf,'-property','Font'),'Font','Roman')
-exportFigures = false;
+
 
 areaWidth = 2.05; %Width of the flight area
 areaHeight = 3.45; %Height of the flight area
@@ -72,44 +72,22 @@ ylimit =[-3.5 0.05];
 p1 = [startPoint(1)-.5 startPoint(2)+.25 startPoint(3)];
 p2 = [-1 0 0];
 quiver3(p1(1),p1(2),p1(3),p2(1),p2(2),p2(3),'LineWidth',1);
-legend('Course','Takeoff/Landing','Takeoff/Landing Site','Location','southeast');
-%legend('boxoff')
+legend('Course','Takeoff/Landing','Takeoff/Landing Site','Location','best');
 hold off
 
 axis equal
 grid on
-view(-45,20)
+
 
 x0=0;
 y0=0;
 plotwidth=600;
 height=300;
 set(gcf,'position',[x0,y0,plotwidth,height])
-
-if exportFigures == true
-    exportgraphics(gcf,'courseToFollow.pdf','ContentType','vector')
-end
 
 
 figure(2)
-plot(totalCourse(:,1),totalCourse(:,2))
-hold on
-plot(circumference(:,1),circumference(:,2))
-xlabel('x-axis [m]');
-ylabel('y-axis [m]');
-zlabel('z-axis [m]');
-legend('Course','Takeoff/Landing Site','Location','south east');
-axis equal
-grid on
-x0=0;
-y0=0;
-plotwidth=600;
-height=300;
-set(gcf,'position',[x0,y0,plotwidth,height])
-hold off
+plot(totalCourse(:,1),
 
-if exportFigures == true
-   exportgraphics(gcf,'courseToFollowAbove.pdf','ContentType','vector')
-end
 
 writematrix(totalCourse,'courseDescriptionHD.csv');
