@@ -1,4 +1,4 @@
-import numpy as np
+import math
 
 class PathFollow:
     def __init__(self, radiusUpdate, pathFileLocation) -> None:
@@ -36,7 +36,7 @@ class PathFollow:
         """
 
         # Beregn afstand mellem position of ref punkt.
-        distPosToRef = np.sqrt((self.path[self.count][1] - position[1])**2 + (
+        distPosToRef = math.sqrt((self.path[self.count][1] - position[1])**2 + (
             self.path[self.count][2] - position[2])**2 + (self.path[self.count][3] - position[3])**2)
         
         if(distPosToRef < self.radiusUpdate):     #Hvis inden for radius til 
@@ -48,5 +48,5 @@ class PathFollow:
         # return xRef, yRef, zRef, Yaw
 
 #For Testing
-pathFollow = PathFollow(500,"C:\\Users\\laula\\Documents\\GitHub\\EIT5-B2-209-Autonomous-Drone\\simulations\\pathFollowing\\pathToFollow.csv") 
-print(pathFollow.getRef([5, 5, 5, 5]))
+#pathFollow = PathFollow(500,"C:\\Users\\laula\\Documents\\GitHub\\EIT5-B2-209-Autonomous-Drone\\simulations\\pathFollowing\\pathToFollow.csv") 
+#print(pathFollow.getRef([5, 5, 5, 5]))
