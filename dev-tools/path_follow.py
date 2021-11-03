@@ -1,4 +1,4 @@
-import math
+import math,csv
 
 class PathFollow:
     def __init__(self, radiusUpdate, pathFileLocation) -> None:
@@ -18,12 +18,8 @@ class PathFollow:
         self.loadPath()
 
     def loadPath(self):  # Path is csv file
-        try:
-            file = open(self.pathFileLocation)
-            path = np.loadtxt(file, delimiter=",")
-        except:
-            print("Load Path failed")
-            path = 0
+        file = open(self.pathFileLocation)
+        path = list(csv.reader(file, delimiter=","))
         self.path = path
         return path
 
@@ -36,8 +32,8 @@ class PathFollow:
         """
 
         # Beregn afstand mellem position of ref punkt.
-        distPosToRef = math.sqrt((self.path[self.count][1] - position[1])**2 + (
-            self.path[self.count][2] - position[2])**2 + (self.path[self.count][3] - position[3])**2)
+        distPosToRef = math.sqrt((float(self.path[self.count][1]) - position[1])**2 + (
+            float(self.path[self.count][2]) - position[2])**2 + (float(self.path[self.count][3]) - position[3])**2)
         
         if(distPosToRef < self.radiusUpdate):     #Hvis inden for radius til 
             self.count +=1          
@@ -48,5 +44,5 @@ class PathFollow:
         # return xRef, yRef, zRef, Yaw
 
 #For Testing
-#pathFollow = PathFollow(500,"C:\\Users\\laula\\Documents\\GitHub\\EIT5-B2-209-Autonomous-Drone\\simulations\\pathFollowing\\pathToFollow.csv") 
-#print(pathFollow.getRef([5, 5, 5, 5]))
+pathFollow = PathFollow(500,"dev-tools/Course_development/courseToFollow.csv") 
+print(pathFollow.getRef([5, 5, 5, 5]))
