@@ -34,7 +34,7 @@ class PathFollow:
         # Beregn afstand mellem position of ref punkt.
         distPosToRef = math.sqrt((float(self.path[self.count][1]) - position[1])**2 + (
             float(self.path[self.count][2]) - position[2])**2 + (float(self.path[self.count][3]) - position[3])**2)
-        
+        print(distPosToRef)
         if(distPosToRef < self.radiusUpdate):     #Hvis inden for radius til 
             self.count +=1          
 
