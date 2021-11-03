@@ -30,6 +30,7 @@ def thread_setpoint_loader2():
     vicon_data = [0,0,0,0]
     while running:
         sp = path.getRef(vicon_data) 
+        print(sp)
         time.sleep(0.1)
 
 # Main program / control loop
