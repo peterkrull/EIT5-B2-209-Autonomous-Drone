@@ -105,7 +105,7 @@ if __name__ == '__main__':
     if log : vicon_log = logger("vicon_log")
 
     #SP loader with path follow
-    path = PathFollow(100, "Course_development/courseToFollow.csv")
+    path = PathFollow(500, "Course_development/courseToFollow.csv")
      
     # setup crazyFlie client
     cf = easyflie()
