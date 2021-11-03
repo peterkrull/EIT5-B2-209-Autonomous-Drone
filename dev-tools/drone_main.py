@@ -8,6 +8,7 @@ from controllers import control
 from data_logger import logger
 from easyflie import easyflie
 from raspberry_socketreader import viconUDP
+from path_follow import PathFollow
 
 # Enable logs
 log = True
@@ -24,9 +25,15 @@ def thread_setpoint_loader():
         except FileNotFoundError: sp = json.load(open("const_setpoint.json"))
         time.sleep(0.5)
 
+def thread_setpoint_loader2():
+    global sp,running,vicon_data,path
+    while running:
+        sp = path.getRef(vicon_data[1],vicon_data[2],vicon_data[3]) 
+        time.sleep(0.1)
+
 # Main program / control loop
 def thread_main_loop():
-    global sp,running
+    global sp,running,vicon_data
 
     # Add column title to log file
     if log : col_titles = ['time','x_pos','y_pos','z_pos','x_rot','y_rot','z_rot']              # LOG CLUSTER 1
@@ -95,6 +102,9 @@ if __name__ == '__main__':
     # Setup vicon udp reader and logger
     vicon_udp = viconUDP()
     if log : vicon_log = logger("vicon_log")
+
+    #SP loader with path follow
+    path = PathFollow(100, "Course_development/courseToFollow.csv")
      
     # setup crazyFlie client
     cf = easyflie()
@@ -115,7 +125,7 @@ if __name__ == '__main__':
     running = True
 
     # Start program threads
-    loader = Thread(target=thread_setpoint_loader)
+    loader = Thread(target=thread_setpoint_loader2)
     loader.start()
     time.sleep(0.2)
 
