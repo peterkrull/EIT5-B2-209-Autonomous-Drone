@@ -67,7 +67,8 @@ def thread_main_loop():
         thrust = pid_thrust.update(z_error) + hover_thrust
 
         # Thrust compensation
-        #thrust = thrust/(cos(pitch*pi/180)*cos(roll*pi/180))
+        const = 0.5
+        thrust = thrust/(cos(const*pitch*pi/180)*cos(const*roll*pi/180))
 
         if log and log_cal : log_data += [thrust,pitch,roll,yaw] # LOG CLUSTER 4
 
