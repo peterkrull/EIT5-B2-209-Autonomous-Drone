@@ -113,9 +113,9 @@ if __name__ == '__main__':
     cf.send_start_setpoint()
 
     # Setup PID control for all axes
-    pid_thrust = control.PID(25e3,0,15e3)
-    pid_pitch = control.PID(40,0,32)
-    pid_roll = control.PID(40,0,32)
+    pid_thrust = control.PID(30e3,0,17e3)
+    pid_pitch = control.PID(35,0,21.8)
+    pid_roll = control.PID(35,0,21.8)
     pid_yaw = control.PID(15,0,1.5)
 
     # # Setup lead-lag controllers
