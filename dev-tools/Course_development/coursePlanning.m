@@ -23,7 +23,7 @@ yaw = zeros(length(newCourse),1);
 
 newCourse = [newCourse yaw];
 
-toAdd = [newCourse(numOfCoor,1) newCourse(numOfCoor,2) .2 0]
+toAdd = [newCourse(numOfCoor,1) newCourse(numOfCoor,2) .2 0];
 %newCourse = [newCourse; toAdd]*750;
 newCourse(:,1) = newCourse(:,1)*500;
 newCourse(:,2) = newCourse(:,2)*500;
