@@ -11,6 +11,13 @@ ppRoute = 400; %Points per route segment
 startHeight = .65; %Height at which the drone starts and stops its course route
 
 
+%Matrix definition
+%x,y,z,yaw,checkpoint
+
+%Todo:
+%   *Implement checkpoints 
+%       These points should not be removed during course planning
+
 %Defines the starting point
 startPoint = [areaWidth/2+.5 areaHeight/2 courseStdHeight];
 
@@ -20,6 +27,9 @@ firstSetPoint = [startPoint(1)-(areaWidth-courseWidth) startPoint(2) courseStdHe
 courseToFirstSetPoint = [linspace(startPoint(1),firstSetPoint(1),ppRoute); linspace(startPoint(2),firstSetPoint(2),ppRoute);linspace(startPoint(3),firstSetPoint(3),ppRoute)]';
 %Yaw description
 yaw1 = 180*ones(ppRoute,1);
+%Adds checkpoints
+checkPoints = zeros(ppRoute,1);
+
 %Adds the first part of the course to the total course
 totalCourse = [courseToFirstSetPoint yaw1];
 
@@ -49,8 +59,8 @@ bigCurveRadius = abs((fourthSetPoint(1)-startPoint(1))/2);
 fifthSetPoint = [fourthSetPoint(1)+2*bigCurveRadius fourthSetPoint(2) courseStdHeight];
 fifthSetPointPoints = linspace(pi,2*pi,ppRoute);
 courseToFifthSetPoint = [fifthSetPoint(1)-bigCurveRadius+cos(fifthSetPointPoints)*bigCurveRadius; fifthSetPoint(2)+sin(fifthSetPointPoints)*bigCurveRadius; linspace(fourthSetPoint(3),fifthSetPoint(3),length(fifthSetPointPoints))]';
-yaw5 = mod(fifthSetPointPoints*180/pi+yaw4(ppRoute),360);
-totalCourse = [totalCourse; courseToFifthSetPoint, ];
+yaw5 = mod(fifthSetPointPoints*180/pi-yaw4(ppRoute),360)';
+totalCourse = [totalCourse; courseToFifthSetPoint yaw5];
 
 %Generates straight movement along the y-axis with oscillation in the
 %z-axis
@@ -58,12 +68,14 @@ sixthSetPoint = [fifthSetPoint(1) fifthSetPoint(2)+1.5 fifthSetPoint(3)];
 pointsForMovements = linspace(0,4*pi,ppRoute);
 zMovement = sin(pointsForMovements)*.5+fifthSetPoint(3);
 courseToSixthSetPoint = [linspace(fifthSetPoint(1),sixthSetPoint(1),ppRoute);linspace(fifthSetPoint(2),sixthSetPoint(2),ppRoute); zMovement]';
-totalCourse = [totalCourse; courseToSixthSetPoint];
+yaw6 = 90*ones(ppRoute,1);
+totalCourse = [totalCourse; courseToSixthSetPoint yaw6];
 
 %Generates route from the end of the oscillations back to the start point
 endSetPoint = startPoint;
 courseToEndSetPoint = [linspace(sixthSetPoint(1),endSetPoint(1),ppRoute); linspace(sixthSetPoint(2),endSetPoint(2),ppRoute);linspace(sixthSetPoint(3),endSetPoint(3),ppRoute)]';
-totalCourse = [totalCourse; courseToEndSetPoint];
+yaw7 = yaw6;
+totalCourse = [totalCourse; courseToEndSetPoint yaw7];
 
 
 %Draws points from start to end 

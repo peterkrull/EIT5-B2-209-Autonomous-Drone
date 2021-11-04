@@ -10,9 +10,9 @@ numOfCoor = 1;
 
 
 for i = 2:length(courseHD)
-   vec = newCourse(numOfCoor,:)-courseHD(i,:);
+   vec = newCourse(numOfCoor,1:3)-courseHD(i,1:3);
    
-   if pfRadius < norm(vec)
+   if pfRadius < norm(vec) | courseHD(i,5) == 1
        numOfCoor = numOfCoor +1;
        newCourse = [newCourse;courseHD(i,:)];
    end
@@ -32,7 +32,7 @@ newCourse = [newCourse yaw];
 toAdd = [newCourse(numOfCoor,1) newCourse(numOfCoor,2) .2 0];
 
 %Corrects distances to mm
-newCourse(:,1) = newCourse(:,1)*750;
-newCourse(:,2) = newCourse(:,2)*750;
+newCourse(:,1) = newCourse(:,1)*1000;
+newCourse(:,2) = newCourse(:,2)*1000;
 newCourse(:,3) = newCourse(:,3)*1000;
 writematrix(newCourse,'courseToFollow.csv')

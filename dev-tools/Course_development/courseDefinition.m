@@ -27,15 +27,22 @@ firstSetPoint = [startPoint(1)-(areaWidth-courseWidth) startPoint(2) courseStdHe
 courseToFirstSetPoint = [linspace(startPoint(1),firstSetPoint(1),ppRoute); linspace(startPoint(2),firstSetPoint(2),ppRoute);linspace(startPoint(3),firstSetPoint(3),ppRoute)]';
 %Yaw description
 yaw1 = 180*ones(ppRoute,1);
+%Adds checkpoints
+checkPoints = zeros(ppRoute,1);
+checkPoints(1) = 1;
+checkPoints(ppRoute) = 1;
 %Adds the first part of the course to the total course
-totalCourse = [courseToFirstSetPoint yaw1];
+totalCourse = [courseToFirstSetPoint yaw1 checkPoints];
 
 %Defines the second setpoint and generates route from the first to the
 %second set point
 secondSetPoint = [firstSetPoint(1) firstSetPoint(2)-1 courseStdHeight];
 courseToSecondSetPoint = [linspace(firstSetPoint(1),secondSetPoint(1),ppRoute); linspace(firstSetPoint(2),secondSetPoint(2),ppRoute);linspace(firstSetPoint(3),secondSetPoint(3),ppRoute)]';
 yaw2 = (yaw1(1)+90)*ones(ppRoute,1);
-totalCourse = [totalCourse; courseToSecondSetPoint yaw2];
+checkPoints = zeros(ppRoute,1);
+checkPoints(1) = 1;
+checkPoints(ppRoute) = 1;
+totalCourse = [totalCourse; courseToSecondSetPoint yaw2 checkPoints];
 
 %Defines the first curve in the route, radius is .5 meters
 obstacleRadius = .5;
@@ -43,13 +50,13 @@ thirdSetPoint = [secondSetPoint(1) secondSetPoint(2)-2*obstacleRadius courseStdH
 thirdSetPointPoints = linspace(0,pi,ppRoute);
 courseToThirdSetPoint = [secondSetPoint(1)+sin(thirdSetPointPoints)*obstacleRadius; secondSetPoint(2)-obstacleRadius+cos(thirdSetPointPoints)*obstacleRadius; linspace(secondSetPoint(3),thirdSetPoint(3),length(thirdSetPointPoints))]';
 yaw3 = yaw2;
-totalCourse = [totalCourse; courseToThirdSetPoint yaw3];
+totalCourse = [totalCourse; courseToThirdSetPoint yaw3 checkPoints];
 
 %Generates straight line from the first curve to the second curve
 fourthSetPoint = [thirdSetPoint(1) thirdSetPoint(2)-.5 courseStdHeight];
 courseToFourthSetPoint = [linspace(thirdSetPoint(1),fourthSetPoint(1),ppRoute); linspace(thirdSetPoint(2),fourthSetPoint(2),ppRoute);linspace(thirdSetPoint(3),fourthSetPoint(3),ppRoute)]';
 yaw4 = yaw2;
-totalCourse = [totalCourse; courseToFourthSetPoint yaw4];
+totalCourse = [totalCourse; courseToFourthSetPoint yaw4 checkPoints];
 
 %Generates the big curve in the route
 bigCurveRadius = abs((fourthSetPoint(1)-startPoint(1))/2);
@@ -57,7 +64,7 @@ fifthSetPoint = [fourthSetPoint(1)+2*bigCurveRadius fourthSetPoint(2) courseStdH
 fifthSetPointPoints = linspace(pi,2*pi,ppRoute);
 courseToFifthSetPoint = [fifthSetPoint(1)-bigCurveRadius+cos(fifthSetPointPoints)*bigCurveRadius; fifthSetPoint(2)+sin(fifthSetPointPoints)*bigCurveRadius; linspace(fourthSetPoint(3),fifthSetPoint(3),length(fifthSetPointPoints))]';
 yaw5 = mod(fifthSetPointPoints*180/pi-yaw4(ppRoute),360)';
-totalCourse = [totalCourse; courseToFifthSetPoint yaw5];
+totalCourse = [totalCourse; courseToFifthSetPoint yaw5 checkPoints];
 
 %Generates straight movement along the y-axis with oscillation in the
 %z-axis
@@ -66,13 +73,13 @@ pointsForMovements = linspace(0,4*pi,ppRoute);
 zMovement = sin(pointsForMovements)*.5+fifthSetPoint(3);
 courseToSixthSetPoint = [linspace(fifthSetPoint(1),sixthSetPoint(1),ppRoute);linspace(fifthSetPoint(2),sixthSetPoint(2),ppRoute); zMovement]';
 yaw6 = 90*ones(ppRoute,1);
-totalCourse = [totalCourse; courseToSixthSetPoint yaw6];
+totalCourse = [totalCourse; courseToSixthSetPoint yaw6 checkPoints];
 
 %Generates route from the end of the oscillations back to the start point
 endSetPoint = startPoint;
 courseToEndSetPoint = [linspace(sixthSetPoint(1),endSetPoint(1),ppRoute); linspace(sixthSetPoint(2),endSetPoint(2),ppRoute);linspace(sixthSetPoint(3),endSetPoint(3),ppRoute)]';
 yaw7 = yaw6;
-totalCourse = [totalCourse; courseToEndSetPoint yaw7];
+totalCourse = [totalCourse; courseToEndSetPoint yaw7 checkPoints];
 
 
 %Draws points from start to end 
