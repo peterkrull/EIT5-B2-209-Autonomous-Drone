@@ -65,6 +65,12 @@ def thread_main_loop():
         if log and log_error : log_data += [x_error,y_error,z_error,yaw_error] # LOG CLUSTER 2
         if log and log_sp : log_data += [sp.get('x')/1000,sp.get('y')/1000,sp.get('z')/1000,sp.get('z')] # LOG CLUSTER 3
 
+        #fixes yaw error around 0 deg
+        if yaw_error < -180:
+            yaw_error += 360
+        else if yaw_error > 180:
+            yaw_error -= 360
+
         # Get updated control from PID
         pitch = pid_pitch.update(y_error)
         roll = pid_roll.update(x_error)
