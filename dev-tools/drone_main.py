@@ -67,7 +67,7 @@ def thread_main_loop():
         thrust = pid_thrust.update(z_error) + hover_thrust
 
         # Thrust compensation
-        thrust = thrust/(cos(pitch*pi/180)*cos(roll*pi/180))
+        #thrust = thrust/(cos(pitch*pi/180)*cos(roll*pi/180))
 
         if log and log_cal : log_data += [thrust,pitch,roll,yaw] # LOG CLUSTER 4
 
@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
     # command limits
     thrust_lim      = [10000, 65535]
-    pitchroll_lim   = [-10 , 10]
+    pitchroll_lim   = [-40 , 40]
     yaw_lim         = [-360,360]
 
     # Setup vicon udp reader and logger
@@ -127,7 +127,7 @@ if __name__ == '__main__':
     running = True
 
     # Start program threads
-    loader = Thread(target=thread_setpoint_loader2)
+    loader = Thread(target=thread_setpoint_loader)
     loader.start()
     time.sleep(0.2)
 
