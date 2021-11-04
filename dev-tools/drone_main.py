@@ -84,7 +84,6 @@ def thread_main_loop():
         yaw = control.limiter(yaw,yaw_lim[0],yaw_lim[1])
         if log and log_lim : log_data += [thrust,pitch,roll,yaw] # LOG CLUSTER 5
 
-        pitch, roll = 0,0
 
         # Send updated control params
         cf.send_setpoint(roll,pitch,yaw,int(thrust))
@@ -142,7 +141,7 @@ if __name__ == '__main__':
     running = True
 
     # Start program threads
-    loader = Thread(target=thread_setpoint_loader)
+    loader = Thread(target=thread_setpoint_loader2)
     loader.start()
     time.sleep(0.2)
 
