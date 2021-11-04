@@ -10,6 +10,12 @@ from easyflie import easyflie
 from raspberry_socketreader import viconUDP
 from path_follow import PathFollow
 
+# Library for data logging
+from cflib.crazyflie.log import LogConfig
+from cflib.crazyflie.syncLogger import SyncLogger
+from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
+from cflib.crazyflie import Crazyflie
+
 # Enable logs
 log = True
 log_error = True
@@ -32,6 +38,24 @@ def thread_setpoint_loader2():
         sp = path.getRef(vicon_data) 
         print(sp)
         time.sleep(0.1)
+
+def thread_drone_log():
+    global drone_data, running
+    lg_stab = LogConfig(name='category', period_in_ms=10)
+    lg_stab.add_variable('motor.m1', 'uint8_t')
+    lg_stab.add_variable('motor.m2', 'uint8_t')
+    lg_stab.add_variable('motor.m3', 'uint8_t')
+    lg_stab.add_variable('motor.m4', 'uint8_t')
+    lg_stab.add_variable('stabilizer.roll', 'float')
+    lg_stab.add_variable('baro.temp', 'float')
+    #lg_stab.add_variable('kalman.varZ', 'float')
+
+    with SyncCrazyflie(cf.URI, cf=Crazyflie(rw_cache='./cache')) as scf:
+        with SyncLogger(scf, lg_stab) as logger:
+            for log_entry in logger:
+                drone_data = log_entry[1]
+                #print(data1[len(data1)-1])
+                if not running: break
 
 # Main program / control loop
 def thread_main_loop():
@@ -125,6 +149,9 @@ if __name__ == '__main__':
     vicon_udp = viconUDP()
     if log : vicon_log = logger("vicon_log")
 
+    # Log data from drone
+    drone_data = {}
+
     #SP loader with path follow
     path = PathFollow(100, "Course_development/courseToFollow.csv")
      
@@ -134,8 +161,8 @@ if __name__ == '__main__':
 
     # Setup PID control for all axes
     pid_thrust = control.PID(30e3,0,17e3)
-    pid_pitch = control.PID(35,0,21.8)
-    pid_roll = control.PID(35,0,21.8)
+    pid_pitch = control.PID(40,0,32)
+    pid_roll = control.PID(40,0,32)
     pid_yaw = control.PID(15,0,1.5)
 
     # # Setup lead-lag controllers
@@ -147,8 +174,11 @@ if __name__ == '__main__':
     running = True
 
     # Start program threads
-    loader = Thread(target=thread_setpoint_loader2)
+    loader = Thread(target=thread_setpoint_loader)
     loader.start()
+    time.sleep(0.2)
+    drone_logger = Thread(target=thread_drone_log)
+    drone_logger.start()
     time.sleep(0.2)
 
     # Start all controllers
