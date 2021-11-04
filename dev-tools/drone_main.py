@@ -51,6 +51,11 @@ def thread_main_loop():
         vicon_data = vicon_udp.getTimestampedData() # fetch vicon data
         if log : log_data = vicon_data # LOG CLUSTER 1
 
+        # Check room limits
+        sp['x'] = control.limiter(sp['x'],rl['x']['min'],rl['x']['max'])
+        sp['y'] = control.limiter(sp['y'],rl['y']['min'],rl['y']['max'])
+        sp['z'] = control.limiter(sp['z'],rl['z']['min'],rl['z']['max'])
+
         # Calculate error in position and yaw
         x_error = (sp.get('x')-vicon_data[1])/1000
         y_error = (sp.get('y')-vicon_data[2])/1000
@@ -96,6 +101,13 @@ if __name__ == '__main__':
     gravity = 9.81 # m/s²
     grav_force = drone_mass*gravity
     vicon_freq = 300
+
+    # Room limit dict
+    rl = {
+        'x' : {'min':-1000,'max':1000},
+        'y' : {'min':-1600,'max':1600},
+        'z' : {'min':0,'max':2500},
+    }
 
     # command limits
     thrust_lim      = [10000, 65535]
