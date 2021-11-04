@@ -49,8 +49,8 @@ bigCurveRadius = abs((fourthSetPoint(1)-startPoint(1))/2);
 fifthSetPoint = [fourthSetPoint(1)+2*bigCurveRadius fourthSetPoint(2) courseStdHeight];
 fifthSetPointPoints = linspace(pi,2*pi,ppRoute);
 courseToFifthSetPoint = [fifthSetPoint(1)-bigCurveRadius+cos(fifthSetPointPoints)*bigCurveRadius; fifthSetPoint(2)+sin(fifthSetPointPoints)*bigCurveRadius; linspace(fourthSetPoint(3),fifthSetPoint(3),length(fifthSetPointPoints))]';
-yaw5 = mod(fifthSetPointPoints*180/pi-yaw4(ppRoute),360)';
-totalCourse = [totalCourse; courseToFifthSetPoint yaw5];
+yaw5 = mod(fifthSetPointPoints*180/pi+yaw4(ppRoute),360);
+totalCourse = [totalCourse; courseToFifthSetPoint, ];
 
 %Generates straight movement along the y-axis with oscillation in the
 %z-axis
@@ -58,14 +58,12 @@ sixthSetPoint = [fifthSetPoint(1) fifthSetPoint(2)+1.5 fifthSetPoint(3)];
 pointsForMovements = linspace(0,4*pi,ppRoute);
 zMovement = sin(pointsForMovements)*.5+fifthSetPoint(3);
 courseToSixthSetPoint = [linspace(fifthSetPoint(1),sixthSetPoint(1),ppRoute);linspace(fifthSetPoint(2),sixthSetPoint(2),ppRoute); zMovement]';
-yaw6 = 90*ones(ppRoute,1);
-totalCourse = [totalCourse; courseToSixthSetPoint yaw6];
+totalCourse = [totalCourse; courseToSixthSetPoint];
 
 %Generates route from the end of the oscillations back to the start point
 endSetPoint = startPoint;
 courseToEndSetPoint = [linspace(sixthSetPoint(1),endSetPoint(1),ppRoute); linspace(sixthSetPoint(2),endSetPoint(2),ppRoute);linspace(sixthSetPoint(3),endSetPoint(3),ppRoute)]';
-yaw7 = yaw6;
-totalCourse = [totalCourse; courseToEndSetPoint yaw7];
+totalCourse = [totalCourse; courseToEndSetPoint];
 
 
 %Draws points from start to end 

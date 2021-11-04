@@ -23,9 +23,12 @@ yaw = zeros(length(newCourse),1);
 
 newCourse = [newCourse yaw];
 
+%Adds checkpoint before landing
+
 toAdd = [newCourse(numOfCoor,1) newCourse(numOfCoor,2) .2 0];
-%newCourse = [newCourse; toAdd]*750;
+
+%Corrects distances to mm
 newCourse(:,1) = newCourse(:,1)*750;
-newCourse(:,2) = newCourse(:,2)*750+500;
-newCourse(:,3) = newCourse(:,3)*1000+300;
+newCourse(:,2) = newCourse(:,2)*750;
+newCourse(:,3) = newCourse(:,3)*1000;
 writematrix(newCourse,'courseToFollow.csv')
