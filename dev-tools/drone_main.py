@@ -67,7 +67,8 @@ def thread_main_loop():
         thrust = pid_thrust.update(z_error) + hover_thrust
 
         # Thrust compensation
-        thrust = thrust/(cos(pitch*pi/180)*cos(roll*pi/180))
+        const = 0.5
+        thrust = thrust/(cos(const*pitch*pi/180)*cos(const*roll*pi/180))
 
         if log and log_cal : log_data += [thrust,pitch,roll,yaw] # LOG CLUSTER 4
 
@@ -98,7 +99,7 @@ if __name__ == '__main__':
 
     # command limits
     thrust_lim      = [10000, 65535]
-    pitchroll_lim   = [-10 , 10]
+    pitchroll_lim   = [-40 , 40]
     yaw_lim         = [-360,360]
 
     # Setup vicon udp reader and logger
@@ -106,16 +107,16 @@ if __name__ == '__main__':
     if log : vicon_log = logger("vicon_log")
 
     #SP loader with path follow
-    path = PathFollow(500, "Course_development/courseToFollow.csv")
+    path = PathFollow(100, "Course_development/courseToFollow.csv")
      
     # setup crazyFlie client
     cf = easyflie()
     cf.send_start_setpoint()
 
     # Setup PID control for all axes
-    pid_thrust = control.PID(25e3,0,15e3)
-    pid_pitch = control.PID(40,0,32)
-    pid_roll = control.PID(40,0,32)
+    pid_thrust = control.PID(30e3,0,17e3)
+    pid_pitch = control.PID(35,0,21.8)
+    pid_roll = control.PID(35,0,21.8)
     pid_yaw = control.PID(15,0,1.5)
 
     # # Setup lead-lag controllers
@@ -127,7 +128,7 @@ if __name__ == '__main__':
     running = True
 
     # Start program threads
-    loader = Thread(target=thread_setpoint_loader2)
+    loader = Thread(target=thread_setpoint_loader)
     loader.start()
     time.sleep(0.2)
 
