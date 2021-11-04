@@ -1,9 +1,13 @@
 courseHD = readmatrix('courseDescriptionHD.csv');
 
+%Does not work with yaw currently, wip
+
 pfRadius = .2; %Radius of the pathfollowing algorithme in meters
 
 newCourse = courseHD(1,:);
 numOfCoor = 1;
+
+
 
 for i = 2:length(courseHD)
    vec = newCourse(numOfCoor,:)-courseHD(i,:);
