@@ -84,6 +84,8 @@ def thread_main_loop():
         yaw = control.limiter(yaw,yaw_lim[0],yaw_lim[1])
         if log and log_lim : log_data += [thrust,pitch,roll,yaw] # LOG CLUSTER 5
 
+        pitch, roll = 0,0
+
         # Send updated control params
         cf.send_setpoint(roll,pitch,yaw,int(thrust))
 
