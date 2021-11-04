@@ -1,11 +1,13 @@
 import cflib.crtp
 from cflib.crazyflie import Crazyflie
+import logging
 
 class easyflie:
 
     def __init__(self,URI = None):
         self.URI = 'radio://0/80/2M' if not URI else URI
         cflib.crtp.init_drivers()
+        logging.basicConfig(level=logging.ERROR)
         self.cf = Crazyflie()
 
     def send_start_setpoint(self):
