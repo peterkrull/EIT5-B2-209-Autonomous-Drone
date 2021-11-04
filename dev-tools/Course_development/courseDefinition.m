@@ -11,6 +11,13 @@ ppRoute = 400; %Points per route segment
 startHeight = .65; %Height at which the drone starts and stops its course route
 
 
+%Matrix definition
+%x,y,z,yaw,checkpoint
+
+%Todo:
+%   *Implement checkpoints 
+%       These points should not be removed during course planning
+
 %Defines the starting point
 startPoint = [areaWidth/2+.5 areaHeight/2 courseStdHeight];
 
