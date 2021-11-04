@@ -19,9 +19,9 @@ for i = 2:length(courseHD)
            vec1 = newCourse(numOfCoor,1:2) - newCourse(numOfCoor-1,1:2);
            angle = atan2(vec1(2),vec1(1))*180/pi;
            if angle < 0
-              angle = angle +360;
+            angle
            end
-           newCourse(numOfCoor,4) = angle;
+           newCourse(numOfCoor,4) = ;
        end
    end
     
@@ -37,7 +37,7 @@ axis equal
 
 %Adds checkpoint before landing
 
-toAdd = [newCourse(numOfCoor,1) newCourse(numOfCoor,2) .2 newCourse(numOfCoor,4) 1];
+toAdd = [newCourse(numOfCoor,1) newCourse(numOfCoor,2) .2 newCourse(numOfCoor,3) 1];
 newCourse = [newCourse; toAdd];
 newCourse = [newCourse(:,1) newCourse(:,2) newCourse(:,3) newCourse(:,4)]
 
