@@ -1,4 +1,5 @@
 import math,csv
+import time
 
 class PathFollow:
     def __init__(self, radiusUpdate, pathFileLocation) -> None:
@@ -16,6 +17,7 @@ class PathFollow:
         self.count = 0                      #The step the drone heading for in at in path
         self.pathFileLocation = pathFileLocation
         self.loadPath()
+        self.timeStamped = False
 
     def loadPath(self):  # Path is csv file
         file = open(self.pathFileLocation)
@@ -37,8 +39,18 @@ class PathFollow:
         print("SP",self.path[self.count])
         print("CO",position[1],position[2],position[3])
         print("DS",distPosToRef)
+        
+        
         if(distPosToRef < self.radiusUpdate):     #Hvis inden for radius til 
-            self.count +=1          
+            #Remove comments to hold positions before flying
+            #if(self.timeStamped = False):
+                #self.timeStamped = True
+                #clockReachedDest = time.monotonic()
+            
+            #if(time.monotonic() - clockReachedDest > self.path[self.count][4]):
+                #self.timeStamped = False
+                self.count +=1
+
 
         if not (self.count >= len(self.path)):
             return {"x":float(self.path[self.count][0]),
