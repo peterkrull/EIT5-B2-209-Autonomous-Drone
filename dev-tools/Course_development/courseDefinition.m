@@ -3,13 +3,13 @@ set(findall(gcf,'-property','FontSize'),'FontSize',13)
 set(findall(gcf,'-property','Font'),'Font','Roman')
 exportFigures = false;
 
-areaWidth = 2.05*.75; %Width of the flight area
-areaHeight = 3.45*.75; %Height of the flight area
+areaWidth = 2.05; %Width of the flight area
+areaHeight = 3.45; %Height of the flight area
 courseWidth = .15; %Buffer around route
 courseStdHeight = 1.3; %standard height at which the drone will complete the course
 ppRoute = 400; %Points per route segment
 startHeight = .65; %Height at which the drone starts and stops its course route
-
+courseScale = .75;
 
 %Matrix definition
 %x,y,z,yaw,checkpoint
@@ -19,7 +19,7 @@ startHeight = .65; %Height at which the drone starts and stops its course route
 %       These points should not be removed during course planning
 
 %Defines the starting point
-startPoint = [areaWidth/2+.5 areaHeight/2 courseStdHeight];
+startPoint = [areaWidth/2 areaHeight/2+.5 courseStdHeight];
 
 %Defines the first set point
 firstSetPoint = [startPoint(1)-(areaWidth-courseWidth) startPoint(2) courseStdHeight];
@@ -81,6 +81,8 @@ courseToEndSetPoint = [linspace(sixthSetPoint(1),endSetPoint(1),ppRoute); linspa
 yaw7 = yaw6;
 totalCourse = [totalCourse; courseToEndSetPoint yaw7 checkPoints];
 
+
+totalCourse = [totalCourse(:,1)*courseScale totalCourse(:,2)*courseScale totalCourse(:,3) totalCourse(:,4) totalCourse(:,5)];
 
 %Draws points from start to end 
 launchLanding = linspace(startHeight,startPoint(3),ppRoute);

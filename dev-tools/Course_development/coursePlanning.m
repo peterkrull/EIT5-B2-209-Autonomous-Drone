@@ -39,10 +39,11 @@ axis equal
 
 toAdd = [newCourse(numOfCoor,1) newCourse(numOfCoor,2) .2 newCourse(numOfCoor,4) 1];
 newCourse = [newCourse; toAdd];
-newCourse = [newCourse(:,1) newCourse(:,2) newCourse(:,3) newCourse(:,4)]
+newCourse = [newCourse(:,1) newCourse(:,2) newCourse(:,3) newCourse(:,4)];
 
 %Corrects distances to mm
 newCourse(:,1) = newCourse(:,1)*1000;
 newCourse(:,2) = newCourse(:,2)*1000;
 newCourse(:,3) = newCourse(:,3)*1000;
 writematrix(newCourse,'courseToFollow.csv')
+writematrix([newCourse(:,1) newCourse(:,2) newCourse(:,3)],'courseToFollowNoYaw.csv')
