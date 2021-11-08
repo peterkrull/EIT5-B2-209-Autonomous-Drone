@@ -2,7 +2,7 @@ import json
 import time
 
 from threading import Thread
-from math import pi,cos
+from math import pi,cos,sin
 
 from controllers import control
 from data_logger import logger
@@ -86,6 +86,12 @@ def thread_main_loop():
         z_error = (sp.get('z')-vicon_data[3])/1000
         #yaw_error = -(sp.get('yaw')-(vicon_data[6]*(180/pi))) # Fall back to this one
         yaw_error = sp.get('yaw')+(vicon_data[6]*(180/pi)) # Try this configuration
+
+        #Allowing for yaw, Calculating errors in drones bodyframe
+        x_error =  x_error * cos(vicon_data[6]) + y_error * sin(vicon_data[6])
+        y_error = -x_error * sin(vicon_data[6]) + y_error * cos(vicon_data[6])
+
+
         if log and log_error : log_data += [x_error,y_error,z_error,yaw_error] # LOG CLUSTER 2
         if log and log_sp : log_data += [sp.get('x')/1000,sp.get('y')/1000,sp.get('z')/1000,sp.get('z')] # LOG CLUSTER 3
 
