@@ -81,18 +81,18 @@ def thread_main_loop():
         sp['z'] = control.limiter(sp['z'],rl['z']['min'],rl['z']['max'])
 
         # Calculate error in position and yaw
-        x_error = (sp.get('x')-vicon_data[1])/1000
-        y_error = (sp.get('y')-vicon_data[2])/1000
+        x_error_room = (sp.get('x')-vicon_data[1])/1000
+        y_error_room = (sp.get('y')-vicon_data[2])/1000
         z_error = (sp.get('z')-vicon_data[3])/1000
         #yaw_error = -(sp.get('yaw')-(vicon_data[6]*(180/pi))) # Fall back to this one
         yaw_error = sp.get('yaw')+(vicon_data[6]*(180/pi)) # Try this configuration
 
         #Allowing for yaw, Calculating errors in drones bodyframe
-        x_error =  x_error * cos(vicon_data[6]) + y_error * sin(vicon_data[6])
-        y_error = -x_error * sin(vicon_data[6]) + y_error * cos(vicon_data[6])
+        x_error_drone =  x_error_room * cos(vicon_data[6]) + y_error_room * sin(vicon_data[6])
+        y_error_drone = -x_error_room * sin(vicon_data[6]) + y_error_room * cos(vicon_data[6])
 
 
-        if log and log_error : log_data += [x_error,y_error,z_error,yaw_error] # LOG CLUSTER 2
+        if log and log_error : log_data += [x_error_room,y_error_room,z_error,yaw_error] # LOG CLUSTER 2
         if log and log_sp : log_data += [sp.get('x')/1000,sp.get('y')/1000,sp.get('z')/1000,sp.get('z')] # LOG CLUSTER 3
 
         #fixes yaw error around 0 deg
@@ -102,8 +102,8 @@ def thread_main_loop():
             yaw_error -= 360
 
         # Get updated control from PID
-        pitch = pid_pitch.update(y_error)
-        roll = pid_roll.update(x_error)
+        pitch = pid_pitch.update(y_error_drone)
+        roll = pid_roll.update(x_error_drone)
         yaw = pid_yaw.update(yaw_error)
         thrust = pid_thrust.update(z_error) + hover_thrust
 
