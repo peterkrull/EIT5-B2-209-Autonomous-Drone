@@ -10,7 +10,7 @@ from cflib.crazyflie.syncLogger import SyncLogger
 import logging
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 
-#Data logging thread
+# Data logging thread
 class myThread1 (threading.Thread):
    def __init__(self, URI = None):
       threading.Thread.__init__(self)
@@ -18,15 +18,13 @@ class myThread1 (threading.Thread):
       cflib.crtp.init_drivers()
       logging.basicConfig(level=logging.ERROR)
       self.cf = Crazyflie()
+
    def run(self):
       lg_stab = LogConfig(name='category', period_in_ms=10)
-      #lg_stab.add_variable('motor.m1', 'uint8_t')
-      #lg_stab.add_variable('motor.m2', 'uint8_t')
-      #lg_stab.add_variable('motor.m3', 'uint8_t')
-      #lg_stab.add_variable('motor.m4', 'uint8_t')
-      lg_stab.add_variable('stabilizer.roll', 'float')
-      lg_stab.add_variable('baro.temp', 'float')
-      #lg_stab.add_variable('kalman.varZ', 'float')
+      lg_stab.add_variable('motor.m1', 'uint8_t')
+      lg_stab.add_variable('motor.m2', 'uint8_t')
+      lg_stab.add_variable('motor.m3', 'uint8_t')
+      lg_stab.add_variable('motor.m4', 'uint8_t')
       data1 = []
 
       with SyncCrazyflie(self.URI, cf=Crazyflie(rw_cache='./cache')) as scf:
@@ -36,17 +34,16 @@ class myThread1 (threading.Thread):
                print(data1[len(data1)-1])
          return data1[len(data1)-1]
 
-#Thread der simulere drone_main
+# Thread to simulate drone_main
 class myThread2 (threading.Thread):
    def __init__(self, delay):
       threading.Thread.__init__(self)
       self.delay = delay
+
    def run(self):
       while True:
-         print("ahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh")
+         print("Thread 2 is active")
          time.sleep(self.delay)
-
-
 
 # Create new threads
 thread1 = myThread1()
@@ -55,5 +52,3 @@ thread2 = myThread2(0.003)
 # Start new Threads
 thread1.start()
 thread2.start()
-
-print("Exiting Main Thread")
