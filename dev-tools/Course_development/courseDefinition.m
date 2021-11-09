@@ -87,12 +87,12 @@ totalCourse = [totalCourse(:,1)*courseScale totalCourse(:,2)*courseScale totalCo
 
 %Draws points from start to end 
 launchLanding = linspace(startHeight,startPoint(3),ppRoute);
-courseToStartPoint = [linspace(startPoint(1),startPoint(1),ppRoute);linspace(startPoint(2),startPoint(2),ppRoute);launchLanding]';
+courseToStartPoint = [linspace(startPoint(1)*courseScale,startPoint(1)*courseScale,ppRoute);linspace(startPoint(2)*courseScale,startPoint(2)*courseScale,ppRoute);launchLanding]';
 
 
 %Draws takeoff/landing zone
 aPoints = linspace(0,2*pi,ppRoute);
-circumference = [cos(aPoints)*courseWidth+startPoint(1); sin(aPoints)*courseWidth+startPoint(2); ones(1,length(aPoints))*startHeight]';
+circumference = [cos(aPoints)*courseWidth+startPoint(1)*courseScale; sin(aPoints)*courseWidth+startPoint(2)*courseScale; ones(1,length(aPoints))*startHeight]';
 
 
 
@@ -111,16 +111,18 @@ ylimit =[-3.5 0.05];
 
 
 %Draws arrow
-p1 = [startPoint(1)-.5 startPoint(2)+.25 startPoint(3)];
+p1 = [(startPoint(1)-.5)*courseScale (startPoint(2)+.25)*courseScale startPoint(3)];
 p2 = [-1 0 0];
-quiver3(p1(1),p1(2),p1(3),p2(1),p2(2),p2(3),'LineWidth',1);
-legend('Course','Takeoff/Landing','Takeoff/Landing Site','Location','southeast');
+mArrow3(p1,p1+p2*courseScale);
+
+
+legend('Course','Takeoff/Landing','Takeoff/Landing Site','Location','best');
 %legend('boxoff')
 hold off
 
 axis equal
 grid on
-view(-45,20)
+view(-45,15)
 
 x0=0;
 y0=0;
