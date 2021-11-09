@@ -12,7 +12,7 @@ numOfCoor = 1;
 for i = 2:length(courseHD)
    vec = newCourse(numOfCoor,1:3)-courseHD(i,1:3);
    
-   if pfRadius < norm(vec) | courseHD(i,5) == 1
+   if pfRadius < norm(vec) | courseHD(i,6) == 1
        numOfCoor = numOfCoor +1;
        newCourse = [newCourse;courseHD(i,:)];
        if newCourse(numOfCoor,4) ~= newCourse(numOfCoor-1,4)
@@ -37,9 +37,9 @@ axis equal
 
 %Adds checkpoint before landing
 
-toAdd = [newCourse(numOfCoor,1) newCourse(numOfCoor,2) .2 newCourse(numOfCoor,4) 1];
+toAdd = [newCourse(numOfCoor,1) newCourse(numOfCoor,2) .2 newCourse(numOfCoor,4) 1 0];
 newCourse = [newCourse; toAdd];
-newCourse = [newCourse(:,1) newCourse(:,2) newCourse(:,3) newCourse(:,4)];
+newCourse = [newCourse(:,1) newCourse(:,2) newCourse(:,3) newCourse(:,4) newCourse(:,5)];
 
 %Corrects distances to mm
 newCourse(:,1) = newCourse(:,1)*1000;
