@@ -98,7 +98,7 @@ def thread_main_loop():
         #fixes yaw error around 0 deg
         if yaw_error < -180:
             yaw_error += 360
-        else if yaw_error > 180:
+        elif yaw_error > 180:
             yaw_error -= 360
 
         # Get updated control from PID
