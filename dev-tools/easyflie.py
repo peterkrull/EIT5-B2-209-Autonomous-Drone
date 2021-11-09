@@ -8,7 +8,7 @@ class easyflie:
         self.URI = 'radio://0/80/2M' if not URI else URI
         cflib.crtp.init_drivers()
         logging.basicConfig(level=logging.ERROR)
-        self.cf = Crazyflie()
+        self.cf = Crazyflie(rw_cache='./cache')
 
     def send_start_setpoint(self):
         self.cf.open_link(self.URI)

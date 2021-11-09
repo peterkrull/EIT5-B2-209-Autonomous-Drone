@@ -46,16 +46,14 @@ def thread_drone_log():
     lg_stab.add_variable('motor.m2', 'uint8_t')
     lg_stab.add_variable('motor.m3', 'uint8_t')
     lg_stab.add_variable('motor.m4', 'uint8_t')
-    lg_stab.add_variable('stabilizer.roll', 'float')
-    lg_stab.add_variable('baro.temp', 'float')
-    #lg_stab.add_variable('kalman.varZ', 'float')
 
-    with SyncCrazyflie(cf.URI, cf=Crazyflie(rw_cache='./cache')) as scf:
-        with SyncLogger(scf, lg_stab) as logger:
-            for log_entry in logger:
-                drone_data = log_entry[1]
-                #print(data1[len(data1)-1])
-                if not running: break
+    with SyncLogger(SyncCrazyflie(cf.URI,cf=cf.cf), lg_stab) as logger:
+        for log_entry in logger:
+            drone_data = log_entry[1]
+
+            # TODO This data should be added to log file
+
+            if not running: break
 
 # Main program / control loop
 def thread_main_loop():
@@ -142,7 +140,7 @@ if __name__ == '__main__':
     # Room limit dict
     rl = {
         'x' : {'min':-1500,'max':1500},
-        'y' : {'min':-1600,'max':2000},
+        'y' : {'min':-2000,'max':2000},
         'z' : {'min':0,'max':2500},
     }
 
@@ -183,6 +181,7 @@ if __name__ == '__main__':
     loader = Thread(target=thread_setpoint_loader)
     loader.start()
     time.sleep(0.2)
+
     drone_logger = Thread(target=thread_drone_log)
     drone_logger.start()
     time.sleep(0.2)
