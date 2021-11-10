@@ -61,7 +61,7 @@ def thread_main_loop():
     global sp,running,vicon_data
 
     # Add column title to log file
-    if log : col_titles = ['time','x_pos','y_pos','z_pos','x_rot','y_rot','z_rot']              # LOG CLUSTER 1
+    if log : col_titles = ['time','x_pos','y_pos','z_pos','x_rot','y_rot','z_rot','delta_time','z_filtered']              # LOG CLUSTER 1
     if log and log_error : col_titles += ['x_error','y_error','z_error','yaw_error']            # LOG CLUSTER 2
     if log and log_sp : col_titles += ['x_setpoint','y_setpoint','z_setpoint','yaw_setpoint']   # LOG CLUSTER 3
     if log and log_cal : col_titles += ['thrust_cal','pitch_cal','roll_cal','yaw_cal']          # LOG CLUSTER 4
@@ -71,8 +71,10 @@ def thread_main_loop():
 
     while running:
         # Get vicon data and log it
+        pre_time = time.time()
         vicon_data = vicon_udp.getTimestampedData() # fetch vicon data
         if log : log_data = vicon_data # LOG CLUSTER 1
+        if log : log_data += [time.time()-pre_time] # LOG CLUSTER 1 
 
         # Check room limits
         sp['x'] = control.limiter(sp['x'],rl['x']['min'],rl['x']['max'])
@@ -83,18 +85,17 @@ def thread_main_loop():
         x_error_room = (sp.get('x')-vicon_data[1])/1000
         y_error_room = (sp.get('y')-vicon_data[2])/1000
         z_error = (sp.get('z')-vicon_data[3])/1000
-        #yaw_error = -(sp.get('yaw')-(vicon_data[6]*(180/pi))) # Fall back to this one
-        yaw_error = sp.get('yaw')+(vicon_data[6]*(180/pi)) # Try this configuration
+        yaw_error = sp.get('yaw')+(vicon_data[6]*(180/pi)) 
 
-        yaw_filtered = filter_yaw.update(yaw_error)
+        z_rot_filtered = filter_yaw.update(yaw_error)
 
         #Allowing for yaw, Calculating errors in drones bodyframe
-        x_error_drone =  x_error_room * cos(vicon_data[6]) + y_error_room * sin(vicon_data[6])
-        y_error_drone = -x_error_room * sin(vicon_data[6]) + y_error_room * cos(vicon_data[6])
+        x_error_drone =  x_error_room * cos(z_rot_filtered) + y_error_room * sin(z_rot_filtered)
+        y_error_drone = -x_error_room * sin(z_rot_filtered) + y_error_room * cos(z_rot_filtered)
 
 
         if log and log_error : log_data += [x_error_room,y_error_room,z_error,yaw_error] # LOG CLUSTER 2
-        if log and log_sp : log_data += [sp.get('x')/1000,sp.get('y')/1000,sp.get('z')/1000,sp.get('z')] # LOG CLUSTER 3
+        if log and log_sp : log_data += [sp.get('x')/1000,sp.get('y')/1000,sp.get('z')/1000,sp.get('yaw')*(180/pi)] # LOG CLUSTER 3
 
         #fixes yaw error around 0 deg
         if yaw_error < -180:
@@ -129,7 +130,7 @@ def thread_main_loop():
         if log : vicon_log.log_data(log_data)
 
         # Allow other threads to run
-        time.sleep(1/(2*vicon_freq)) 
+        time.sleep(1/(3*vicon_freq)) 
         
 if __name__ == '__main__':
 
@@ -172,12 +173,9 @@ if __name__ == '__main__':
     pid_roll = control.PID(40,0,32)
     pid_yaw = control.PID(15,0,1.5)
 
-    filter_yaw = control.roll_avg(50)
-
-    # # Setup lead-lag controllers
-    # lead_thrust = control.lead_lag_comp(a=0.15,b=0.85)
-    # lead_pitch = control.lead_lag_comp(a=0,b=1)
-    # lead_roll = control.lead_lag_comp(a=0,b=1)
+    # Setup YAW-axis filter
+    #filter_yaw = control.roll_avg(200)
+    filter_yaw = control.cascade(control.low_pass,4,tau=0.05)
 
     # Tells treads to keep running
     running = True
