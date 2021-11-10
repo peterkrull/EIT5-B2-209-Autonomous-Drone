@@ -14,7 +14,6 @@ from path_follow import PathFollow
 from cflib.crazyflie.log import LogConfig
 from cflib.crazyflie.syncLogger import SyncLogger
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
-from cflib.crazyflie import Crazyflie
 
 # Enable logs
 log = True
