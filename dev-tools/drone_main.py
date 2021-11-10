@@ -1,4 +1,5 @@
 import json
+from json.decoder import JSONDecodeError
 import time
 
 from threading import Thread
@@ -200,8 +201,20 @@ if __name__ == '__main__':
     while 1 :
         try: time.sleep(0.2)
         except KeyboardInterrupt:
-            if log : vicon_log.save_file()
             print(">>>> Sending stop command to Crazyflie <<<<")
             cf.send_stop_setpoint()
+            if log : vicon_log.save_file()
+            running = False
+            exit("Exiting program")
+        except JSONDecodeError:
+            print(">>>> JSON file is corrupted, ending now <<<<")
+            sp['x'] = vicon_data[1]
+            sp['y'] = vicon_data[2]
+            sp['z'] = 500
+            time.sleep(1.5)
+            sp['z'] = 0
+            time.sleep(0.5)
+            cf.send_stop_setpoint()
+            if log : vicon_log.save_file()
             running = False
             exit("Exiting program")
