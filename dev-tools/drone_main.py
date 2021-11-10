@@ -47,13 +47,14 @@ def thread_drone_log():
     lg_stab.add_variable('motor.m3', 'uint8_t')
     lg_stab.add_variable('motor.m4', 'uint8_t')
 
-    with SyncLogger(SyncCrazyflie(cf.URI,cf=cf.cf), lg_stab) as logger:
-        for log_entry in logger:
-            drone_data = log_entry[1]
+    while running:
+        with SyncLogger(SyncCrazyflie(cf.URI,cf=cf.cf), lg_stab) as logger:
+            for log_entry in logger:
+                drone_data = log_entry[1]
 
-            # TODO This data should be added to log file
+                # TODO This data should be added to log file
 
-            if not running: break
+                if not running: break
 
 # Main program / control loop
 def thread_main_loop():
@@ -84,6 +85,8 @@ def thread_main_loop():
         z_error = (sp.get('z')-vicon_data[3])/1000
         #yaw_error = -(sp.get('yaw')-(vicon_data[6]*(180/pi))) # Fall back to this one
         yaw_error = sp.get('yaw')+(vicon_data[6]*(180/pi)) # Try this configuration
+
+        yaw_filtered = filter_yaw.update(yaw_error)
 
         #Allowing for yaw, Calculating errors in drones bodyframe
         x_error_drone =  x_error_room * cos(vicon_data[6]) + y_error_room * sin(vicon_data[6])
@@ -168,6 +171,8 @@ if __name__ == '__main__':
     pid_pitch = control.PID(40,0,32)
     pid_roll = control.PID(40,0,32)
     pid_yaw = control.PID(15,0,1.5)
+
+    filter_yaw = control.roll_avg(50)
 
     # # Setup lead-lag controllers
     # lead_thrust = control.lead_lag_comp(a=0.15,b=0.85)
