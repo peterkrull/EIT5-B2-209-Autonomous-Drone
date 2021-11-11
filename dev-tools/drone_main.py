@@ -9,6 +9,7 @@ from data_logger import logger
 from easyflie import easyflie
 from raspberry_socketreader import viconUDP
 from path_follow import PathFollow
+from path_visualizer import path_visualizer
 
 # Library for data logging
 from cflib.crazyflie.log import LogConfig
@@ -22,6 +23,13 @@ log_error = True
 log_sp = True
 log_cal = True
 log_lim = True
+
+def thread_visualizer():
+    global sp,running
+    visualizer = path_visualizer(sp.path)
+    while running:
+        visualizer.updateFrame(sp)
+        time.sleep(.3)
 
 # Constantly load setpoint from file
 def thread_setpoint_loader():
