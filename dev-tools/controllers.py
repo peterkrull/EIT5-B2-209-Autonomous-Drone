@@ -113,7 +113,6 @@ class control:
             if self.form == "ideal":
                 return P * ( 1 + I + D )
 
-
     class lead_lag_comp():
         """
         Discrete time lead-lag compensator of the form k*(s+a)/(s+b)
@@ -153,6 +152,90 @@ class control:
             self.prev_output = output
             self.prev_error = error
             return output
+
+    class low_pass():
+        def __init__(self,tau,init_val=0):
+            """
+            First order discrete time low-pass filter
+
+            Args:
+                tau (float) : Time constant of filter
+                init_val (float) : initial filter value
+            """
+            self.tau = tau
+            self.y = init_val
+            self.prevtime = time.time()
+
+        def update(self,value):
+            """
+            Updates the filter with a new input value.
+
+            Args:
+                value (float) : input value
+
+            Returns (float) : filtered input
+            """
+            xtime = time.time()
+            self.y = self.y + (value-self.y)*(xtime-self.prevtime)/self.tau
+            self.prevtime = xtime
+            return self.y
+
+    class cascade():
+        def __init__(self,system,order,**kwargs):
+            """
+            Allows for multiple of the same controllers or filters
+            to be used in series, useful for higher order filters.
+
+            Args:
+                system (class) : Controller or filter class with `update()` method
+                order (int) : Number of cascaded systems
+                **kwargs : Arguments that should be passed on to system class
+            """
+            self.filter = system
+            self.order = order
+            self.filters = [system(**kwargs) for _ in range(order)]
+
+        def update(self,value):
+            """
+            Updates the entire cascade with a new input value.
+
+            Args:
+                value (float) : input value
+
+            Returns (float) : cascaded input
+            """
+            for filter in self.filters:
+                value = filter.update(value) 
+            return value
+
+    class roll_avg():
+
+        def __init__(self,nums,init_val = 0):
+            """
+            Takes the rolling average of some input value
+
+            Args:
+                nums (int) : number of values to take average of
+                init_val (float) : initial values for array
+            """
+            self.array = [init_val for _ in range(nums)]
+            self.nums = nums
+            self.current = 0
+
+        def update(self,value):
+            """
+            Adds a new value to the rolling average
+
+            Args:
+                value (float) : input value
+
+            Returns (float) : average of `nums` previous input values
+            """
+            self.array[self.current] = value
+            self.current += 1
+            if self.current >= self.nums:
+                self.current = 0
+            return sum(self.array)/self.nums
 
     def limiter(value,min,max):
         """
