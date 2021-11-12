@@ -10,7 +10,7 @@ class control:
     """
 
     class low_pass():
-        def __init__(self,tau,init_val=0,debug_time=None):
+        def __init__(self,tau,init_val=0,debug_time=None, rollover_min = None, rollover_max = None):
             """
             First order discrete time low-pass filter
 
@@ -22,6 +22,8 @@ class control:
             self.tau = tau
             self.y = init_val
             self.prevtime = time.time()
+            self.min = rollover_min
+            self.max = rollover_max
 
         def update(self,value):
             """
@@ -32,6 +34,14 @@ class control:
 
             Returns (float) : filtered input
             """
+
+            # Handle rollover if needed
+            if self.min and self.max:
+                if value-self.y < self.min:
+                    self.y -= self.max-self.min
+                elif value-self.y  > self.max:
+                    self.y += self.max-self.min
+
             # # Self-implementation
             # if not self.debug_time:
             #     xtime = time.time()
@@ -134,16 +144,17 @@ class control:
 
     # Derivative gain
     class derivative:
-        def __init__(self,K, tau = None, order = None,debug_time = None):
+        def __init__(self,K, tau = None, order = None,debug_time = None,**kwargs):
             
             self.debug_time = debug_time
             self.order = order
             self.tau = tau
             self.K = K
+            
             if self.order and self.tau:
-                self.lp = control.cascade(control.low_pass, order, tau=self.tau,debug_time=self.debug_time)
+                self.lp = control.cascade(control.low_pass, order, tau=self.tau,debug_time=self.debug_time,**kwargs)
             elif self.tau:
-                self.lp = control.low_pass(self.tau,debug_time=self.debug_time)
+                self.lp = control.low_pass(self.tau,debug_time=self.debug_time,**kwargs)
 
         def start(self):
             self.prev_time = time.time()
