@@ -23,13 +23,23 @@ log_error = True
 log_sp = True
 log_cal = True
 log_lim = True
+log_drone = True
 
+# Thread to allow for visualizing drone flight
 def thread_visualizer():
     global sp,running
     visualizer = path_visualizer(sp.path)
     while running:
         visualizer.updateFrame(sp)
         time.sleep(.3)
+
+# Load config from file
+def config_load_from_file(filename = "config.json") -> dict:
+    try:
+        try: return json.load(open(f"dev-tools/{filename}"))
+        except FileNotFoundError: return json.load(open(filename))
+    except JSONDecodeError:
+        exit("Configuration file is corrupt, please check it again.")
 
 # Constantly load setpoint from file
 def thread_setpoint_loader():
@@ -39,6 +49,7 @@ def thread_setpoint_loader():
         except FileNotFoundError: sp = json.load(open("const_setpoint.json"))
         time.sleep(0.5)
 
+# Flight path following thread
 def thread_setpoint_loader2():
     global sp,running,vicon_data,path
     vicon_data = [0,0,0,0]
@@ -47,21 +58,17 @@ def thread_setpoint_loader2():
         print(sp)
         time.sleep(0.1)
 
+# Logging thread
 def thread_drone_log():
     global drone_data, running
     lg_stab = LogConfig(name='category', period_in_ms=10)
-    lg_stab.add_variable('motor.m1', 'uint8_t')
-    lg_stab.add_variable('motor.m2', 'uint8_t')
-    lg_stab.add_variable('motor.m3', 'uint8_t')
-    lg_stab.add_variable('motor.m4', 'uint8_t')
+    for entry in conf['drone_log']:
+        lg_stab.add_variable(entry,conf['drone_log'][entry]['type'])
 
     while running:
         with SyncLogger(SyncCrazyflie(cf.URI,cf=cf.cf), lg_stab) as logger:
             for log_entry in logger:
                 drone_data = log_entry[1]
-
-                # TODO This data should be added to log file
-
                 if not running: break
 
 # Main program / control loop
@@ -69,11 +76,12 @@ def thread_main_loop():
     global sp,running,vicon_data
 
     # Add column title to log file
-    if log : col_titles = ['time','x_pos','y_pos','z_pos','x_rot','y_rot','z_rot','delta_time','z_filtered']              # LOG CLUSTER 1
-    if log and log_error : col_titles += ['x_error','y_error','z_error','yaw_error']            # LOG CLUSTER 2
-    if log and log_sp : col_titles += ['x_setpoint','y_setpoint','z_setpoint','yaw_setpoint']   # LOG CLUSTER 3
-    if log and log_cal : col_titles += ['thrust_cal','pitch_cal','roll_cal','yaw_cal']          # LOG CLUSTER 4
-    if log and log_lim : col_titles += ['thrust_lim','pitch_lim','roll_lim','yaw_lim']          # LOG CLUSTER 5
+    if log : col_titles = ['time','x_pos','y_pos','z_pos','x_rot','y_rot','z_rot','delta_time','z_filtered']    # LOG CLUSTER 1
+    if log and log_error : col_titles += ['x_error','y_error','z_error','yaw_error']                            # LOG CLUSTER 2
+    if log and log_sp : col_titles += ['x_setpoint','y_setpoint','z_setpoint','yaw_setpoint']                   # LOG CLUSTER 3
+    if log and log_cal : col_titles += ['thrust_cal','pitch_cal','roll_cal','yaw_cal']                          # LOG CLUSTER 4
+    if log and log_lim : col_titles += ['thrust_lim','pitch_lim','roll_lim','yaw_lim']                          # LOG CLUSTER 5
+    if log and log_drone : col_titles += [conf["drone_log"][entry]['id'] for entry in conf["drone_log"]]        # LOG CLUSTER 6
     if log : vicon_log.log_data(col_titles)
     if log : del col_titles
 
@@ -85,9 +93,9 @@ def thread_main_loop():
         if log : log_data += [time.time()-pre_time] # LOG CLUSTER 1 
 
         # Check room limits
-        sp['x'] = control.limiter(sp['x'],rl['x']['min'],rl['x']['max'])
-        sp['y'] = control.limiter(sp['y'],rl['y']['min'],rl['y']['max'])
-        sp['z'] = control.limiter(sp['z'],rl['z']['min'],rl['z']['max'])
+        sp['x'] = control.limiter(sp['x'],conf['room_limits']['x']['min'],conf['room_limits']['x']['max'])
+        sp['y'] = control.limiter(sp['y'],conf['room_limits']['y']['min'],conf['room_limits']['y']['max'])
+        sp['z'] = control.limiter(sp['z'],conf['room_limits']['z']['min'],conf['room_limits']['z']['max'])
 
         # Calculate error in position and yaw
         x_error_room = (sp.get('x')-vicon_data[1])/1000
@@ -95,17 +103,17 @@ def thread_main_loop():
         z_error = (sp.get('z')-vicon_data[3])/1000
         yaw_error = sp.get('yaw')+(vicon_data[6]*(180/pi)) 
 
-        z_rot_filtered = filter_yaw.update(yaw_error)
+        # Apply filter to temporary z-rotation value
+        z_rot_filtered = filter_yaw.update(vicon_data[6])
 
-        #Allowing for yaw, Calculating errors in drones bodyframe
+        # Allowing for yaw, calculating errors in drones bodyframe
         x_error_drone =  x_error_room * cos(z_rot_filtered) + y_error_room * sin(z_rot_filtered)
         y_error_drone = -x_error_room * sin(z_rot_filtered) + y_error_room * cos(z_rot_filtered)
-
 
         if log and log_error : log_data += [x_error_room,y_error_room,z_error,yaw_error] # LOG CLUSTER 2
         if log and log_sp : log_data += [sp.get('x')/1000,sp.get('y')/1000,sp.get('z')/1000,sp.get('yaw')*(180/pi)] # LOG CLUSTER 3
 
-        #fixes yaw error around 0 deg
+        # Fix yaw error around -180 deg <-> 180 deg crossing
         if yaw_error < -180:
             yaw_error += 360
         elif yaw_error > 180:
@@ -115,7 +123,7 @@ def thread_main_loop():
         pitch = pid_pitch.update(y_error_drone)
         roll = pid_roll.update(x_error_drone)
         yaw = pid_yaw.update(yaw_error)
-        thrust = pid_thrust.update(z_error) + hover_thrust
+        thrust = pid_thrust.update(z_error) + conf.get("hover_thrust")
 
         # Thrust compensation
         const = 0.5
@@ -124,12 +132,17 @@ def thread_main_loop():
         if log and log_cal : log_data += [thrust,pitch,roll,yaw] # LOG CLUSTER 4
 
         # Set hard cap to output values
-        thrust = control.limiter(thrust,thrust_lim[0],thrust_lim[1])
-        pitch = control.limiter(pitch,pitchroll_lim[0],pitchroll_lim[1])
-        roll = control.limiter(roll,pitchroll_lim[0],pitchroll_lim[1])
-        yaw = control.limiter(yaw,yaw_lim[0],yaw_lim[1])
+        thrust = control.limiter(thrust,conf['act_limits']['thrust']['min'],conf['act_limits']['thrust']['max'])
+        pitch = control.limiter(pitch,conf['act_limits']['pitch']['min'],conf['act_limits']['pitch']['max'])
+        roll = control.limiter(roll,conf['act_limits']['roll']['min'],conf['act_limits']['roll']['max'])
+        yaw = control.limiter(yaw,conf['act_limits']['yaw']['min'],conf['act_limits']['yaw']['max'])
+
         if log and log_lim : log_data += [thrust,pitch,roll,yaw] # LOG CLUSTER 5
 
+        if log and log_drone and drone_data : # LOG CLUSTER 6
+            log_data += [drone_data[x] for x in conf["drone_log"]] 
+            drone_data = None
+            # For MATLAB processing of data, see 'fillmissing' to use this data
 
         # Send updated control params
         cf.send_setpoint(roll,pitch,yaw,int(thrust))
@@ -138,61 +151,52 @@ def thread_main_loop():
         if log : vicon_log.log_data(log_data)
 
         # Allow other threads to run
-        time.sleep(1/(3*vicon_freq)) 
+        time.sleep(1/(3*conf['vicon_freq'])) 
         
 if __name__ == '__main__':
 
-    # constans
-    hover_thrust = 41323
-    drone_mass = 0.0318 # kilograms
-    gravity = 9.81 # m/s²
-    grav_force = drone_mass*gravity
-    vicon_freq = 300
-
-    # Room limit dict
-    rl = {
-        'x' : {'min':-1500,'max':1500},
-        'y' : {'min':-2000,'max':2000},
-        'z' : {'min':0,'max':2500},
-    }
-
-    # command limits
-    thrust_lim      = [10000, 65535]
-    pitchroll_lim   = [-40 , 40]
-    yaw_lim         = [-360,360]
+    global conf
+    conf = config_load_from_file()
 
     # Setup vicon udp reader and logger
     vicon_udp = viconUDP()
-    if log : vicon_log = logger("vicon_log")
+    if log : vicon_log = logger(conf["log_file_name"])
 
     # Log data from drone
     drone_data = {}
 
     #SP loader with path follow
-    path = PathFollow(100, "Course_development/courseToFollow.csv")
+    path = PathFollow(conf["course_params"]["check_radius"], conf["course_params"]["file_path"])
      
     # setup crazyFlie client
     cf = easyflie()
     cf.send_start_setpoint()
 
     # Setup PID control for all axes
-    pid_thrust = control.PID(30e3,0,17e3)
-    pid_pitch = control.PID(40,0,32)
-    pid_roll = control.PID(40,0,32)
-    pid_yaw = control.PID(15,0,1.5)
+    pid_thrust = control.PID(conf["pid_vals"]["thrust"]["p"],conf["pid_vals"]["thrust"]["i"],conf["pid_vals"]["thrust"]["d"])
+    pid_pitch = control.PID(conf["pid_vals"]["pitch"]["p"],conf["pid_vals"]["pitch"]["i"],conf["pid_vals"]["pitch"]["d"])
+    pid_roll = control.PID(conf["pid_vals"]["roll"]["p"],conf["pid_vals"]["roll"]["i"],conf["pid_vals"]["roll"]["d"])
+    pid_yaw = control.PID(conf["pid_vals"]["yaw"]["p"],conf["pid_vals"]["yaw"]["i"],conf["pid_vals"]["yaw"]["d"])
 
     # Setup YAW-axis filter
-    #filter_yaw = control.roll_avg(200)
-    filter_yaw = control.cascade(control.low_pass,4,tau=0.05)
+    if conf["yaw_filter"]["type"] == "roll_avg": # Rolling average
+        filter_yaw = control.roll_avg(conf["yaw_filter"]["roll_avg"]["nuber"])
+
+    elif conf["yaw_filter"]["type"] == "lowpass": # n-order lowpass filter
+        filter_yaw = control.cascade(
+            control.low_pass, # filter to use
+            conf["yaw_filter"]["lowpass"]["order"], # order
+            tau=conf["yaw_filter"]["lowpass"]["tau"]) # time-constant
 
     # Tells treads to keep running
     running = True
 
-    # Start program threads
+    # Start program thread
     loader = Thread(target=thread_setpoint_loader)
     loader.start()
     time.sleep(0.2)
 
+    # Start drone loagger thread
     drone_logger = Thread(target=thread_drone_log)
     drone_logger.start()
     time.sleep(0.2)
@@ -202,6 +206,7 @@ if __name__ == '__main__':
     for controller in CON:
         controller.start()
 
+    # Start main loop thread
     main = Thread(target=thread_main_loop)
     main.start()
 

@@ -1,0 +1,38 @@
+{   
+    "vicon_freq" : 300, 
+    "hover_thrust" : 41323,
+    "log_file_name" : "vicon_log",
+    "course_params" : {
+        "check_radius" : 100,
+        "file_path" : "Course_development/courseToFollow.csv"
+    },
+    "pid_vals" : {
+        "thrust" :  {"p" : 30e3,    "i" : 0,    "d" : 17e3},
+        "pitch" :   {"p" : 40,      "i" : 0,    "d" : 32},
+        "roll" :    {"p" : 40,      "i" : 0,    "d" : 32},
+        "yaw" :     {"p" : 15,      "i" : 0,    "d" : 1.5}
+    },
+    "act_limits" : {
+        "thrust" :  {"min":10000,   "max":65535},
+        "pitch" :   {"min":-40,     "max":40},
+        "roll" :    {"min":-40,     "max":40},
+        "yaw" :     {"min":-360,    "max":360}
+    },
+    "room_limits" : {
+        "x" : {"min":-1500, "max":1500},
+        "y" : {"min":-2000, "max":2000},
+        "z" : {"min":0,     "max":2500}
+    },
+    "drone_log" : {
+        "motor.m1":     {"id" : "motor1",   "type" : "uint8_t"},
+        "motor.m2":     {"id" : "motor2",   "type" : "uint8_t"},
+        "motor.m3":     {"id" : "motor3",   "type" : "uint8_t"},
+        "motor.m4":     {"id" : "motor4",   "type" : "uint8_t"}
+    },
+    "yaw_filter" : {
+        "type" : "roll_avg",
+        "roll_avg" : {"number" : 200},
+        "lowpass" : {"tau" : 0.05 , "order" : 4}
+
+    }
+}
