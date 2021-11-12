@@ -57,11 +57,11 @@ class control:
             # Handle rollover of output (constrain to limits)
             if self.min and self.max:
                 if self.y < self.min:
-                    return self.y + self.max-self.min
+                    return self.y + (self.max-self.min)
                 elif self.y > self.max:
                     return self.y - (self.max-self.min)
-            
-            return self.y
+            else:
+                return self.y
 
     
     class cascade():
