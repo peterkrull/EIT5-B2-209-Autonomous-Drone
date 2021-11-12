@@ -60,8 +60,8 @@ class control:
                     return self.y + (self.max-self.min)
                 elif self.y > self.max:
                     return self.y - (self.max-self.min)
-            else:
-                return self.y
+
+            return self.y
 
     
     class cascade():
