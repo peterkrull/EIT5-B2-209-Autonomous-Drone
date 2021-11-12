@@ -6,7 +6,123 @@ class control:
     Class that contains various methods useful for descrete time control-systems.
     Methods are the `proportional` gain, `derivative` and `integral` functions. as
     well as a complete PID controller and a lead-lag implementation using `lead_lag_comp`.
+    A few filters are also present such as `roll_avg` and `low_pass` that can be used
     """
+
+    class low_pass():
+        def __init__(self,tau,init_val=0,debug_time=None):
+            """
+            First order discrete time low-pass filter
+
+            Args:
+                tau (float) : Time constant of filter
+                init_val (float) : initial filter value
+            """
+            self.debug_time = debug_time
+            self.tau = tau
+            self.y = init_val
+            self.prevtime = time.time()
+
+        def update(self,value):
+            """
+            Updates the filter with a new input value.
+
+            Args:
+                value (float) : input value
+
+            Returns (float) : filtered input
+            """
+            # # Self-implementation
+            # if not self.debug_time:
+            #     xtime = time.time()
+            #     self.y = self.y + (value-self.y)*(xtime-self.prevtime)/(xtime-self.prevtime+self.tau)
+            #     self.prevtime = xtime
+            # else: # debug
+            #     self.y = self.y + (value-self.y)*(self.debug_time)/(self.debug_time+self.tau) # debug
+
+            # Classic infinite impulse implementation
+            if not self.debug_time:
+                xtime = time.time()
+                T = xtime-self.prevtime
+                a = T/(T+self.tau)
+                self.y = self.y*(1-a)+value*a
+                self.prevtime = xtime
+            else: # debug
+                T = self.debug_time
+                a = T/(T+self.tau)
+                self.y = self.y*(1-a)+value*a
+            
+            return self.y
+
+    
+    class cascade():
+        def __init__(self,system,order,**kwargs):
+            """
+            Allows for multiple of the same controllers or filters
+            to be used in series, useful for higher order filters.
+
+            Args:
+                system (class) : Controller or filter class with `update()` method
+                order (int) : Number of cascaded systems
+                **kwargs : Arguments that should be passed on to system class
+            """
+            self.filter = system
+            self.order = order
+            self.filters = [system(**kwargs) for _ in range(order)]
+
+        def update(self,value):
+            """
+            Updates the entire cascade with a new input value.
+
+            Args:
+                value (float) : input value
+
+            Returns (float) : cascaded input
+            """
+            for filter in self.filters:
+                value = filter.update(value) 
+            return value
+
+    class roll_avg():
+
+        def __init__(self,nums,init_val = 0, rollover_min = None, rollover_max = None):
+            """
+            Takes the rolling average of some input value
+
+            Args:
+                nums (int) : number of values to take average of
+                init_val (float) : initial values for array
+            """
+            self.min = rollover_min
+            self.max = rollover_max
+            self.array = [init_val for _ in range(nums)]
+            self.nums = nums
+            self.current = 0
+
+        def update(self,value):
+            """
+            Adds a new value to the rolling average
+
+            Args:
+                value (float) : input value
+
+            Returns (float) : average of `nums` previous input values
+            """
+
+            # Handle rollover if needed
+            if self.min and self.max:
+                if value-self.array[self.current] < self.min:
+                    for i in range(len(self.array)):
+                        self.array[i] -= self.max-self.min
+                elif value-self.array[self.current]  > self.max:
+                    for i in range(len(self.array)):
+                        self.array[i] += self.max-self.min
+
+            self.array[self.current] = value
+            self.current += 1
+            if self.current >= self.nums:
+                self.current = 0
+            return sum(self.array)/self.nums
 
     # Proportional gain
     class proportional:
@@ -18,23 +134,40 @@ class control:
 
     # Derivative gain
     class derivative:
-        def __init__(self,K):
+        def __init__(self,K, tau = None, order = None,debug_time = None):
+            
+            self.debug_time = debug_time
+            self.order = order
+            self.tau = tau
             self.K = K
+            if self.order and self.tau:
+                self.lp = control.cascade(control.low_pass, order, tau=self.tau,debug_time=self.debug_time)
+            elif self.tau:
+                self.lp = control.low_pass(self.tau,debug_time=self.debug_time)
 
         def start(self):
             self.prev_time = time.time()
             self.prev_erro = 0
 
         def update(self,error):
-            xtime = time.time()
-            derivative = ((error-self.prev_erro)*self.K)/(xtime-self.prev_time)
-            self.prev_time = xtime
+
+            if self.tau:
+                error = self.lp.update(error)
+
+            if not self.debug_time:
+                xtime = time.time()
+                derivative = ((error-self.prev_erro)*self.K)/(xtime-self.prev_time)
+                self.prev_time = xtime
+            else:
+                derivative = ((error-self.prev_erro)*self.K)/(self.debug_time)
+            
             self.prev_erro = error
             return derivative
             
     # Integral gain
     class integral:
-        def __init__(self,K):
+        def __init__(self,K,debug_time = None):
+            self.debug_time = debug_time
             self.K = K
             
         def start(self):
@@ -42,15 +175,19 @@ class control:
             self.integral = 0
 
         def update(self,error):
-            xtime = time.time()
-            self.integral += ((error)*self.K)*(xtime-self.prev_time)
-            self.prev_time = xtime
+
+            if not self.debug_time:
+                xtime = time.time()
+                self.integral += ((error)*self.K)*(xtime-self.prev_time)
+                self.prev_time = xtime
+            else:
+                self.integral += ((error)*self.K)*(self.debug_time)
             return self.integral
 
     # Combined P, I and/or D controller.
     class PID:
 
-        def __init__(self,Kp = None, Ki = None,Kd = None,form = "parallel") -> object:
+        def __init__(self,Kp = None, Ki = None,Kd = None,form = "parallel", **kwargs) -> object:
             """
             Complete PID controller complete PID control, with ability to use
             any combination of P, I and D and user-defined Kp, Ki and Kd constants.
@@ -67,6 +204,7 @@ class control:
                 ideal  : P * ( 1 + I + D )
             
             """
+            
             self.form = form
             self.Kp,self.Ki,self.Kd = Kp,Ki,Kd
             if self.Kp:
@@ -74,10 +212,11 @@ class control:
                 self.p = control.proportional(Kp)
             if self.Ki:
                 #print("Setting I gain to : {}".format(Ki))
-                self.i = control.integral(Ki)
+                self.i = control.integral(Ki,**kwargs)
             if self.Kd:
                 #print("Setting D gain to : {}".format(Kd))
-                self.d = control.derivative(Kd)
+                print(kwargs)
+                self.d = control.derivative(Kd,**kwargs)
 
         def start(self):
             """
@@ -152,90 +291,6 @@ class control:
             self.prev_output = output
             self.prev_error = error
             return output
-
-    class low_pass():
-        def __init__(self,tau,init_val=0):
-            """
-            First order discrete time low-pass filter
-
-            Args:
-                tau (float) : Time constant of filter
-                init_val (float) : initial filter value
-            """
-            self.tau = tau
-            self.y = init_val
-            self.prevtime = time.time()
-
-        def update(self,value):
-            """
-            Updates the filter with a new input value.
-
-            Args:
-                value (float) : input value
-
-            Returns (float) : filtered input
-            """
-            xtime = time.time()
-            self.y = self.y + (value-self.y)*(xtime-self.prevtime)/self.tau
-            self.prevtime = xtime
-            return self.y
-
-    class cascade():
-        def __init__(self,system,order,**kwargs):
-            """
-            Allows for multiple of the same controllers or filters
-            to be used in series, useful for higher order filters.
-
-            Args:
-                system (class) : Controller or filter class with `update()` method
-                order (int) : Number of cascaded systems
-                **kwargs : Arguments that should be passed on to system class
-            """
-            self.filter = system
-            self.order = order
-            self.filters = [system(**kwargs) for _ in range(order)]
-
-        def update(self,value):
-            """
-            Updates the entire cascade with a new input value.
-
-            Args:
-                value (float) : input value
-
-            Returns (float) : cascaded input
-            """
-            for filter in self.filters:
-                value = filter.update(value) 
-            return value
-
-    class roll_avg():
-
-        def __init__(self,nums,init_val = 0):
-            """
-            Takes the rolling average of some input value
-
-            Args:
-                nums (int) : number of values to take average of
-                init_val (float) : initial values for array
-            """
-            self.array = [init_val for _ in range(nums)]
-            self.nums = nums
-            self.current = 0
-
-        def update(self,value):
-            """
-            Adds a new value to the rolling average
-
-            Args:
-                value (float) : input value
-
-            Returns (float) : average of `nums` previous input values
-            """
-            self.array[self.current] = value
-            self.current += 1
-            if self.current >= self.nums:
-                self.current = 0
-            return sum(self.array)/self.nums
 
     def limiter(value,min,max):
         """
