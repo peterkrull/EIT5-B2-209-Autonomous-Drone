@@ -35,20 +35,12 @@ class control:
             Returns (float) : filtered input
             """
 
-            # Handle rollover if needed
+            # Handle rollover on input (shift prev y-value)
             if self.min and self.max:
                 if value-self.y < self.min:
                     self.y -= self.max-self.min
                 elif value-self.y  > self.max:
                     self.y += self.max-self.min
-
-            # # Self-implementation
-            # if not self.debug_time:
-            #     xtime = time.time()
-            #     self.y = self.y + (value-self.y)*(xtime-self.prevtime)/(xtime-self.prevtime+self.tau)
-            #     self.prevtime = xtime
-            # else: # debug
-            #     self.y = self.y + (value-self.y)*(self.debug_time)/(self.debug_time+self.tau) # debug
 
             # Classic infinite impulse implementation
             if not self.debug_time:
@@ -61,6 +53,13 @@ class control:
                 T = self.debug_time
                 a = T/(T+self.tau)
                 self.y = self.y*(1-a)+value*a
+            
+            # Handle rollover of output (constrain to limits)
+            if self.min and self.max:
+                if self.y < self.min:
+                    return self.y + self.max-self.min
+                elif self.y > self.max:
+                    return self.y - (self.max-self.min)
             
             return self.y
 
