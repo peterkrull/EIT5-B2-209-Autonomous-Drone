@@ -25,11 +25,24 @@ subplot(3,1,3)
 plot(t,data(:,4))
 title('gyro.z');
 
+gyroIntegral = [data(1,2) data(1,3) data(1,4)];
+for i = 2:length(data)
+   gyroIntegral = [gyroIntegral; gyroIntegral(i-1,1)+data(i,2) gyroIntegral(i-1,2)+data(i,3) gyroIntegral(i-1,3)+data(i,4)];  
+end
+
+figure(5)
+subplot(3,1,1)
+plot(t,gyroIntegral(:,1))
+title('gyro.x pos')
+
+subplot(3,1,2)
+plot(t,gyroIntegral(:,2))
+title('gyro.y pos')
 
 
-plot(t,gyroXdiff)
-
-
+subplot(3,1,3)
+plot(t,gyroIntegral(:,3))
+title('gyro.z pos')
 
 
 
