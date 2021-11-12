@@ -5,24 +5,21 @@ t = data(:,1)-startTime;
 
 figure(1)
 plot(t,data(:,2))
-title('gyro.x')
-
-figure(2)
+hold on
 plot(t,data(:,2))
-title('gyro.y')
-
-figure(3)
 plot(t,data(:,3))
-title('gyro.z')
+title('Gyroscope drift');
+legend('gyro.x','gyro,y','gyro.z')
+hold off
+
+gyroXRateOfChange = 
 
 figure(4)
 plot(t,data(:,4))
-title('acc.x')
-
-figure(5)
+hold on
 plot(t,data(:,5))
-title('acc.y')
-
-figure(6)
 plot(t,data(:,6))
-title('acc.z')
+title('Accelerometer drift')
+hold off
+legend('acc.x','acc.y','acc.z')
+
