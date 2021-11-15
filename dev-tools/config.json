@@ -30,9 +30,9 @@
         "motor.m4":     {"id" : "motor4",   "type" : "uint8_t"}
     },
     "yaw_filter" : {
-        "type" : "roll_avg",
+        "type" : "lowpass",
         "roll_avg" : {"number" : 200},
-        "lowpass" : {"tau" : 0.05 , "order" : 4}
+        "lowpass" : {"tau" : 0.021 , "order" : 3}
 
     }
 }
