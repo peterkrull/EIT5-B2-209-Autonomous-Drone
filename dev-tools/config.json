@@ -25,10 +25,17 @@
         "z" : {"min":0,     "max":2500}
     },
     "drone_log" : {
-        "motor.m1":     {"id" : "motor1",   "type" : "uint8_t"},
-        "motor.m2":     {"id" : "motor2",   "type" : "uint8_t"},
-        "motor.m3":     {"id" : "motor3",   "type" : "uint8_t"},
-        "motor.m4":     {"id" : "motor4",   "type" : "uint8_t"}
+        "gyro.x":     {"id" : "gyro_x",   "type" : "FP16"},
+        "gyro.y":     {"id" : "gyro_y",   "type" : "FP16"},
+        "gyro.z":     {"id" : "gyro_z",   "type" : "FP16"},
+        "acc.x":     {"id" : "acc_x",   "type" : "FP16"},
+        "acc.y":     {"id" : "acc_y",   "type" : "FP16"},
+        "acc.z":     {"id" : "acc_z",   "type" : "FP16"},
+        "mag.x":     {"id" : "mag_x",   "type" : "FP16"},
+        "mag.y":     {"id" : "mag_y",   "type" : "FP16"},
+        "mag.z":     {"id" : "mag_z",   "type" : "FP16"},
+        "baro.pressure":     {"id" : "baro_pressure",   "type" : "float"}
+
     },
     "yaw_filter" : {
         "type" : "lowpass",
