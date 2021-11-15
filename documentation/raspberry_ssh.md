@@ -15,11 +15,13 @@ First, acquire the the IP-address of the Raspberry Pi. Then open `PowerShell` or
 ssh user@ip
 ```
 
-For this project, the user is `pi`, and the ip is (usually) `192.168.43.202`, so:
+For this project, the user is `pi`, and the IP is (usually) `192.168.43.202`, so:
 
 ```bash
 ssh pi@192.168.43.202
 ```
+
+If the IP is not known, use a tool like wireshark to look for an `ARP` call from the device.
 
 Then you will be asked to enter a password for the user. The default password for the `pi` user in Raspberry OS is `raspberry`.
 
