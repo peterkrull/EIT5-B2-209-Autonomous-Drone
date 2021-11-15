@@ -25,13 +25,14 @@ log_cal = True
 log_lim = True
 log_drone = True
 
-# Thread to allow for visualizing drone flight
-def thread_visualizer():
-    global sp,running
-    visualizer = path_visualizer(sp.path)
-    while running:
-        visualizer.updateFrame(sp)
-        time.sleep(.3)
+# # Outcommented since Pi wont have display out
+# # Thread to allow for visualizing drone flight
+# def thread_visualizer():
+#     global sp,running
+#     visualizer = path_visualizer(sp.path)
+#     while running:
+#         visualizer.updateFrame(sp)
+#         time.sleep(.3)
 
 # Load config from file
 def config_load_from_file(filename = "config.json") -> dict:
@@ -73,7 +74,7 @@ def thread_drone_log():
 
 # Main program / control loop
 def thread_main_loop():
-    global sp,running,vicon_data
+    global sp,running,vicon_data,drone_data
 
     # Add column title to log file
     if log : col_titles = ['time','x_pos','y_pos','z_pos','x_rot','y_rot','z_rot','delta_time','z_filtered']    # LOG CLUSTER 1
@@ -105,6 +106,7 @@ def thread_main_loop():
 
         # Apply filter to temporary z-rotation value
         z_rot_filtered = filter_yaw.update(vicon_data[6])
+        if log : log_data += [z_rot_filtered] # LOG CLUSTER 1 
 
         # Allowing for yaw, calculating errors in drones bodyframe
         x_error_drone =  x_error_room * cos(z_rot_filtered) + y_error_room * sin(z_rot_filtered)
@@ -139,9 +141,12 @@ def thread_main_loop():
 
         if log and log_lim : log_data += [thrust,pitch,roll,yaw] # LOG CLUSTER 5
 
-        if log and log_drone and drone_data : # LOG CLUSTER 6
-            log_data += [drone_data[x] for x in conf["drone_log"]] 
-            drone_data = None
+        if log and log_drone : # LOG CLUSTER 6
+            if drone_data:
+                log_data += [drone_data[x] for x in conf["drone_log"]] 
+                drone_data = None
+            else:
+                log_data += [None for x in conf["drone_log"]] 
             # For MATLAB processing of data, see 'fillmissing' to use this data
 
         # Send updated control params
@@ -155,7 +160,7 @@ def thread_main_loop():
         
 if __name__ == '__main__':
 
-    global conf
+    global conf,drone_data
     conf = config_load_from_file()
 
     # Setup vicon udp reader and logger
@@ -180,7 +185,7 @@ if __name__ == '__main__':
 
     # Setup YAW-axis filter
     if conf["yaw_filter"]["type"] == "roll_avg": # Rolling average
-        filter_yaw = control.roll_avg(conf["yaw_filter"]["roll_avg"]["nuber"])
+        filter_yaw = control.roll_avg(conf["yaw_filter"]["roll_avg"]["number"])
 
     elif conf["yaw_filter"]["type"] == "lowpass": # n-order lowpass filter
         filter_yaw = control.cascade(
@@ -197,9 +202,10 @@ if __name__ == '__main__':
     time.sleep(0.2)
 
     # Start drone loagger thread
-    drone_logger = Thread(target=thread_drone_log)
-    drone_logger.start()
-    time.sleep(0.2)
+    if log_drone:
+        drone_logger = Thread(target=thread_drone_log)
+        drone_logger.start()
+        time.sleep(0.2)
 
     # Start all controllers
     CON = [pid_thrust,pid_pitch,pid_roll,pid_yaw]
@@ -216,10 +222,10 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             print(">>>> Sending stop command to Crazyflie <<<<")
             cf.send_stop_setpoint()
-            if log : vicon_log.save_file()
             running = False
+            if log : vicon_log.save_file()
             exit("Exiting program")
-        except JSONDecodeError:
+        except JSONDecodeError: # Does not work, for some reason
             print(">>>> JSON file is corrupted, ending now <<<<")
             sp['x'] = vicon_data[1]
             sp['y'] = vicon_data[2]
