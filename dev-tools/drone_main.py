@@ -10,7 +10,7 @@ from data_logger import logger
 from easyflie import easyflie
 from raspberry_socketreader import viconUDP
 from path_follow import PathFollow
-from path_visualizer import path_visualizer
+#from path_visualizer import path_visualizer
 
 # Library for data logging
 from cflib.crazyflie.log import LogConfig
@@ -94,9 +94,9 @@ def thread_main_loop():
         if log : log_data += [time.time()-pre_time] # LOG CLUSTER 1 
 
         # Check room limits
-        sp['x'] = control.limiter(sp['x'],conf['room_limits']['x']['min'],conf['room_limits']['x']['max'])
-        sp['y'] = control.limiter(sp['y'],conf['room_limits']['y']['min'],conf['room_limits']['y']['max'])
-        sp['z'] = control.limiter(sp['z'],conf['room_limits']['z']['min'],conf['room_limits']['z']['max'])
+        sp['x'] = control.limiter(sp['x'],**conf['room_limits']['x'])
+        sp['y'] = control.limiter(sp['y'],**conf['room_limits']['y'])
+        sp['z'] = control.limiter(sp['z'],**conf['room_limits']['z'])
 
         # Calculate error in position and yaw
         x_error_room = (sp.get('x')-vicon_data[1])/1000
@@ -134,10 +134,10 @@ def thread_main_loop():
         if log and log_cal : log_data += [thrust,pitch,roll,yaw] # LOG CLUSTER 4
 
         # Set hard cap to output values
-        thrust = control.limiter(thrust,conf['act_limits']['thrust']['min'],conf['act_limits']['thrust']['max'])
-        pitch = control.limiter(pitch,conf['act_limits']['pitch']['min'],conf['act_limits']['pitch']['max'])
-        roll = control.limiter(roll,conf['act_limits']['roll']['min'],conf['act_limits']['roll']['max'])
-        yaw = control.limiter(yaw,conf['act_limits']['yaw']['min'],conf['act_limits']['yaw']['max'])
+        thrust = control.limiter(thrust,**conf['act_limits']['thrust'])
+        pitch = control.limiter(pitch,**conf['act_limits']['pitch'])
+        roll = control.limiter(roll,**conf['act_limits']['roll'])
+        yaw = control.limiter(yaw,**conf['act_limits']['yaw'])
 
         if log and log_lim : log_data += [thrust,pitch,roll,yaw] # LOG CLUSTER 5
 
@@ -178,20 +178,17 @@ if __name__ == '__main__':
     cf.send_start_setpoint()
 
     # Setup PID control for all axes
-    pid_thrust = control.PID(conf["pid_vals"]["thrust"]["p"],conf["pid_vals"]["thrust"]["i"],conf["pid_vals"]["thrust"]["d"])
-    pid_pitch = control.PID(conf["pid_vals"]["pitch"]["p"],conf["pid_vals"]["pitch"]["i"],conf["pid_vals"]["pitch"]["d"])
-    pid_roll = control.PID(conf["pid_vals"]["roll"]["p"],conf["pid_vals"]["roll"]["i"],conf["pid_vals"]["roll"]["d"])
-    pid_yaw = control.PID(conf["pid_vals"]["yaw"]["p"],conf["pid_vals"]["yaw"]["i"],conf["pid_vals"]["yaw"]["d"])
+    pid_thrust = control.PID(**conf["pid_vals"]["thrust"])
+    pid_pitch = control.PID(**conf["pid_vals"]["pitch"])
+    pid_roll = control.PID(**conf["pid_vals"]["roll"])
+    pid_yaw = control.PID(**conf["pid_vals"]["yaw"])
 
     # Setup YAW-axis filter
     if conf["yaw_filter"]["type"] == "roll_avg": # Rolling average
         filter_yaw = control.roll_avg(conf["yaw_filter"]["roll_avg"]["number"])
 
     elif conf["yaw_filter"]["type"] == "lowpass": # n-order lowpass filter
-        filter_yaw = control.cascade(
-            control.low_pass, # filter to use
-            conf["yaw_filter"]["lowpass"]["order"], # order
-            tau=conf["yaw_filter"]["lowpass"]["tau"]) # time-constant
+        filter_yaw = control.cascade(control.low_pass,**conf["yaw_filter"]["lowpass"])
 
     # Tells treads to keep running
     running = True
