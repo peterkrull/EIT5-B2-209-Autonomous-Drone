@@ -7,10 +7,11 @@
         "file_path" : "Course_development/courseToFollow.csv"
     },
     "pid_vals" : {
-        "thrust" :  {"p" : 30e3,    "i" : 0,    "d" : 17e3},
-        "pitch" :   {"p" : 40,      "i" : 0,    "d" : 32},
-        "roll" :    {"p" : 40,      "i" : 0,    "d" : 32},
-        "yaw" :     {"p" : 15,      "i" : 0,    "d" : 1.5}
+        "thrust" :  {"Kp" : 30e3,   "Ki" : 0,   "Kd" : 17e3},
+        "pitch" :   {"Kp" : 40,     "Ki" : 0,   "Kd" : 32},
+        "roll" :    {"Kp" : 40,     "Ki" : 0,   "Kd" : 32},
+        "yaw" :     {"Kp" : 15,     "Ki" : 0,   "Kd" : 1.5,
+                    "rollover_min" : -180,"rollover_max" : -180}
     },
     "act_limits" : {
         "thrust" :  {"min":10000,   "max":65535},
