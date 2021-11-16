@@ -12,7 +12,7 @@ startHeight = .65; %Height at which the drone starts and stops its course route
 courseScale = .75;
 
 %Matrix definition
-%x,y,z,yaw,hold time,checkpoint
+%x,y,z,yaw,hold time,checkpoint, ViconAvailable
 
 
 %Defines the starting point
@@ -31,8 +31,10 @@ checkPoints(ppRoute) = 1;
 %StationKeeping [s]
 holdTime = zeros(ppRoute,1);
 holdTime(1) = 10;
+%Vicon available
+vicon = ones(ppRoute,1);
 %Adds the first part of the course to the total course
-totalCourse = [courseToFirstSetPoint yaw1 holdTime checkPoints];
+totalCourse = [courseToFirstSetPoint yaw1 holdTime checkPoints vicon];
 
 %Defines the second setpoint and generates route from the first to the
 %second set point
@@ -43,7 +45,7 @@ checkPoints = zeros(ppRoute,1);
 checkPoints(1) = 0;
 checkPoints(ppRoute) = 1;
 holdTime = zeros(ppRoute,1);
-totalCourse = [totalCourse; courseToSecondSetPoint yaw2 holdTime checkPoints];
+totalCourse = [totalCourse; courseToSecondSetPoint yaw2 holdTime checkPoints vicon];
 
 %Defines the first curve in the route, radius is .5 meters
 obstacleRadius = .5;
@@ -51,13 +53,13 @@ thirdSetPoint = [secondSetPoint(1) secondSetPoint(2)-2*obstacleRadius courseStdH
 thirdSetPointPoints = linspace(0,pi,ppRoute);
 courseToThirdSetPoint = [secondSetPoint(1)+sin(thirdSetPointPoints)*obstacleRadius; secondSetPoint(2)-obstacleRadius+cos(thirdSetPointPoints)*obstacleRadius; linspace(secondSetPoint(3),thirdSetPoint(3),length(thirdSetPointPoints))]';
 yaw3 = yaw2;
-totalCourse = [totalCourse; courseToThirdSetPoint yaw3 holdTime checkPoints];
+totalCourse = [totalCourse; courseToThirdSetPoint yaw3 holdTime checkPoints vicon];
 
 %Generates straight line from the first curve to the second curve
 fourthSetPoint = [thirdSetPoint(1) thirdSetPoint(2)-.5 courseStdHeight];
 courseToFourthSetPoint = [linspace(thirdSetPoint(1),fourthSetPoint(1),ppRoute); linspace(thirdSetPoint(2),fourthSetPoint(2),ppRoute);linspace(thirdSetPoint(3),fourthSetPoint(3),ppRoute)]';
 yaw4 = yaw2;
-totalCourse = [totalCourse; courseToFourthSetPoint yaw4 holdTime checkPoints];
+totalCourse = [totalCourse; courseToFourthSetPoint yaw4 holdTime checkPoints vicon];
 
 %Generates the big curve in the route
 bigCurveRadius = abs((fourthSetPoint(1)-startPoint(1))/2);
@@ -65,7 +67,7 @@ fifthSetPoint = [fourthSetPoint(1)+2*bigCurveRadius fourthSetPoint(2) courseStdH
 fifthSetPointPoints = linspace(pi,2*pi,ppRoute);
 courseToFifthSetPoint = [fifthSetPoint(1)-bigCurveRadius+cos(fifthSetPointPoints)*bigCurveRadius; fifthSetPoint(2)+sin(fifthSetPointPoints)*bigCurveRadius; linspace(fourthSetPoint(3),fifthSetPoint(3),length(fifthSetPointPoints))]';
 yaw5 = mod(fifthSetPointPoints*180/pi-yaw4(ppRoute),360)';
-totalCourse = [totalCourse; courseToFifthSetPoint yaw5 holdTime checkPoints];
+totalCourse = [totalCourse; courseToFifthSetPoint yaw5 holdTime checkPoints vicon];
 
 %Generates straight movement along the y-axis with oscillation in the
 %z-axis
@@ -74,16 +76,17 @@ pointsForMovements = linspace(0,4*pi,ppRoute);
 zMovement = sin(pointsForMovements)*.5+fifthSetPoint(3);
 courseToSixthSetPoint = [linspace(fifthSetPoint(1),sixthSetPoint(1),ppRoute);linspace(fifthSetPoint(2),sixthSetPoint(2),ppRoute); zMovement]';
 yaw6 = 90*ones(ppRoute,1);
-totalCourse = [totalCourse; courseToSixthSetPoint yaw6 holdTime checkPoints];
+totalCourse = [totalCourse; courseToSixthSetPoint yaw6 holdTime checkPoints vicon];
 
 %Generates route from the end of the oscillations back to the start point
 endSetPoint = startPoint;
 courseToEndSetPoint = [linspace(sixthSetPoint(1),endSetPoint(1),ppRoute); linspace(sixthSetPoint(2),endSetPoint(2),ppRoute);linspace(sixthSetPoint(3),endSetPoint(3),ppRoute)]';
 yaw7 = yaw6;
-totalCourse = [totalCourse; courseToEndSetPoint yaw7 holdTime checkPoints];
+vicon = zeros(ppRoute,1);
+totalCourse = [totalCourse; courseToEndSetPoint yaw7 holdTime checkPoints vicon];
 
 
-totalCourse = [totalCourse(:,1)*courseScale totalCourse(:,2)*courseScale totalCourse(:,3) totalCourse(:,4) totalCourse(:,5) totalCourse(:,6)];
+totalCourse = [totalCourse(:,1)*courseScale totalCourse(:,2)*courseScale totalCourse(:,3) totalCourse(:,4) totalCourse(:,5) totalCourse(:,6) totalCourse(:,7)];
 
 %Draws points from start to end 
 launchLanding = linspace(startHeight,startPoint(3),ppRoute);
