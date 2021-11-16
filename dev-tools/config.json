@@ -11,7 +11,7 @@
         "pitch" :   {"Kp" : 40,     "Ki" : 0,   "Kd" : 32},
         "roll" :    {"Kp" : 40,     "Ki" : 0,   "Kd" : 32},
         "yaw" :     {"Kp" : 15,     "Ki" : 0,   "Kd" : 1.5,
-                    "rollover_min" : -180,"rollover_max" : -180}
+                    "rollover_min" : -180,"rollover_max" : 180}
     },
     "act_limits" : {
         "thrust" :  {"min":10000,   "max":65535},
