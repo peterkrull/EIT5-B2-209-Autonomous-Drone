@@ -194,7 +194,7 @@ if __name__ == '__main__':
     running = True
 
     # Start program thread
-    loader = Thread(target=thread_setpoint_loader)
+    loader = Thread(target=thread_setpoint_loader2)
     loader.start()
     time.sleep(0.2)
 
