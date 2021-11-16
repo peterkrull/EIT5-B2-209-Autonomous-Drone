@@ -31,7 +31,7 @@ class path_visualizer:
         self.xValues.append(coordinate['x'])
         self.xValues.append(coordinate['y'])
         self.xValues.append(coordinate['z'])
-        ax.plot(self.xValues,self.yValues,self.zValues, color='black')
+        self.ax.plot(self.xValues,self.yValues,self.zValues, color='black')
         
         if len(self.xValues)>10:
             self.xValues.pop(0)
