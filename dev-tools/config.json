@@ -11,7 +11,7 @@
         "pitch" :   {"Kp" : 40,     "Ki" : 0,   "Kd" : 32},
         "roll" :    {"Kp" : 40,     "Ki" : 0,   "Kd" : 32},
         "yaw" :     {"Kp" : 15,     "Ki" : 0,   "Kd" : 1.5,
-                    "rollover_min" : -180,"rollover_max" : -180}
+                    "rollover_min" : -180,"rollover_max" : 180}
     },
     "act_limits" : {
         "thrust" :  {"min":10000,   "max":65535},
@@ -25,16 +25,15 @@
         "z" : {"min":0,     "max":2500}
     },
     "drone_log" : {
-        "gyro.x":     {"id" : "gyro_x",   "type" : "FP16"},
-        "gyro.y":     {"id" : "gyro_y",   "type" : "FP16"},
-        "gyro.z":     {"id" : "gyro_z",   "type" : "FP16"},
+        "gyro.x":     {"id" : "gyro_x",   "type" : "float"},
+        "gyro.y":     {"id" : "gyro_y",   "type" : "float"},
+        "gyro.z":     {"id" : "gyro_z",   "type" : "float"},
         "acc.x":     {"id" : "acc_x",   "type" : "FP16"},
         "acc.y":     {"id" : "acc_y",   "type" : "FP16"},
         "acc.z":     {"id" : "acc_z",   "type" : "FP16"},
-        "mag.x":     {"id" : "mag_x",   "type" : "FP16"},
-        "mag.y":     {"id" : "mag_y",   "type" : "FP16"},
-        "mag.z":     {"id" : "mag_z",   "type" : "FP16"},
-        "baro.pressure":     {"id" : "baro_pressure",   "type" : "float"}
+        "stateEstimate.yaw":     {"id" : "stateEstimate_yaw",   "type" : "FP16"},
+        "baro.pressure":     {"id" : "baro_pressure",   "type" : "float"},
+        "pm.vbat":     {"id" : "pm_vbat",   "type" : "FP16"}
 
     },
     "yaw_filter" : {

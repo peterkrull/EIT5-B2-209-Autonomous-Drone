@@ -1,16 +1,21 @@
+clear
 courseHD = readmatrix('courseDescriptionHD.csv');
 
-xColumn = 1;        printX        = true;
-yColumn = 2;        printY        = true;
-zColumn = 3;        printZ        = true;
-yawColumn = 4;      printYaw      = true;
-holdTimeColumn = 5; printHoldTime = true;
+xColumn = 1;         printX        = true;
+yColumn = 2;         printY        = true;
+zColumn = 3;         printZ        = true;
+yawColumn = 4;       printYaw      = true;
+holdTimeColumn = 5;  printHoldTime = true;
+checkpointColumn = 6;printCheckPoint = false;
+viconColumn = 7;     printVicon    = true;
 
 printMatrix = [xColumn printX];
 printMatrix = [printMatrix; yColumn printY];
 printMatrix = [printMatrix; zColumn printZ];
 printMatrix = [printMatrix; yawColumn printYaw];
 printMatrix = [printMatrix; holdTimeColumn printHoldTime];
+printMatrix = [printMatrix; checkpointColumn printCheckPoint];
+printMatrix = [printMatrix; viconColumn printVicon];
 
 pfRadius = .5; %Radius of the pathfollowing algorithme in meters
 
@@ -48,9 +53,9 @@ hold off
 
 %Adds checkpoint before landing
 
-toAdd = [newCourse(numOfCoor,1) newCourse(numOfCoor,2) .2 newCourse(numOfCoor,4) 0 1];
+toAdd = [newCourse(numOfCoor,1) newCourse(numOfCoor,2) .2 newCourse(numOfCoor,4) 0 1 1];
 newCourse = [newCourse; toAdd];
-newCourse = [newCourse(:,1) newCourse(:,2) newCourse(:,3) newCourse(:,4) newCourse(:,5)];
+newCourse = [newCourse(:,1) newCourse(:,2) newCourse(:,3) newCourse(:,4) newCourse(:,5) newCourse(:,6) newCourse(:,7)];
 
 %Corrects distances to mm
 newCourse(:,1) = newCourse(:,1)*1000;
@@ -66,10 +71,11 @@ end
 
 
 %Sets columns not chosen to be output to 0
-for i = 1:size(printMatrix,1)
-   if printMatrix(i,2) == false
-      newCourse(:,printMatrix(i,1)) = zeros(size(newCourse,1),1); 
+toOutput(:,1) = newCourse(:,1);
+for i = 2:size(printMatrix,1)
+   if printMatrix(i,2) == true
+      toOutput = [toOutput newCourse(:,i)]; 
    end
 end
 
-writematrix(newCourse,'courseToFollow.csv')
+writematrix(toOutput,'courseToFollow.csv')

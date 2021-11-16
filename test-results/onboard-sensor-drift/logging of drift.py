@@ -26,7 +26,7 @@ def simple_log(scf, logconf):
             print( '%s' %(data))
 
             
-            totalData.append([dataTime, data['gyro.x'],data['gyro.y'],data['gyro.z'],data['acc.x'],data['acc.y'],data['acc.z'],data['baro.pressure']])     
+            totalData.append([dataTime, data['gyro.x'],data['gyro.y'],data['gyro.z'],data['acc.x'],data['acc.y'],data['acc.z'],data['stateEstimate.yaw'],data['baro.pressure'],data['pm.vbat']])     
             if(time.time()>startTime+420):
                 break
         
@@ -42,16 +42,15 @@ if __name__ == '__main__':
     cflib.crtp.init_drivers()
 
     lg_stab = LogConfig(name='Stabilizer', period_in_ms=10)
-    lg_stab.add_variable('gyro.x', 'FP16')
-    lg_stab.add_variable('gyro.y', 'FP16')
-    lg_stab.add_variable('gyro.z', 'FP16')
+    lg_stab.add_variable('gyro.x', 'float')
+    lg_stab.add_variable('gyro.y', 'float')
+    lg_stab.add_variable('gyro.z', 'float')
     lg_stab.add_variable('acc.x', 'FP16')
     lg_stab.add_variable('acc.y', 'FP16')
     lg_stab.add_variable('acc.z', 'FP16')
-    lg_stab.add_variable('mag.x', 'FP16')
-    lg_stab.add_variable('mag.y', 'FP16')
-    lg_stab.add_variable('mag.z', 'FP16')
+    lg_stab.add_variable('stateEstimate.yaw', 'FP16')
     lg_stab.add_variable('baro.pressure', 'float')
+    lg_stab.add_variable('pm.vbat', 'FP16')
 
     with SyncCrazyflie(uri, cf=Crazyflie(rw_cache='./cache')) as scf:
 
