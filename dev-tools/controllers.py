@@ -143,8 +143,10 @@ class control:
 
     # Derivative gain
     class derivative:
-        def __init__(self,K, tau = None, order = None,debug_time = None,**kwargs):
+        def __init__(self,K, tau = None, order = None,debug_time = None,rollover_min = None,rollover_max = None,**kwargs):
             
+            self.min = rollover_min
+            self.max = rollover_max
             self.debug_time = debug_time
             self.order = order
             self.tau = tau
@@ -163,6 +165,13 @@ class control:
 
             if self.tau:
                 error = self.lp.update(error)
+
+            # Handle rollover if needed
+            if self.min and self.max:
+                if error-self.prev_erro < self.min:
+                    self.prev_erro -= self.max-self.min
+                elif error-self.prev_erro  > self.max:
+                    self.prev_erro += self.max-self.min
 
             if not self.debug_time:
                 xtime = time.time()
@@ -225,7 +234,6 @@ class control:
                 self.i = control.integral(Ki,**kwargs)
             if self.Kd:
                 #print("Setting D gain to : {}".format(Kd))
-                print(kwargs)
                 self.d = control.derivative(Kd,**kwargs)
 
         def start(self):
