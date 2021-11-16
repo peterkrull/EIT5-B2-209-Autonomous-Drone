@@ -185,15 +185,26 @@ class control:
             
     # Integral gain
     class integral:
-        def __init__(self,K,debug_time = None):
+        def __init__(self,K,debug_time = None,rollover_min = None,rollover_max = None):
+            self.min = rollover_min
+            self.max = rollover_max
+
             self.debug_time = debug_time
             self.K = K
             
         def start(self):
             self.prev_time = time.time()
             self.integral = 0
+            self.prev_erro = 0
 
         def update(self,error):
+
+            # Handle rollover if needed
+            if self.min and self.max:
+                if error-self.prev_erro < self.min:
+                    self.integral  -= self.max-self.min
+                elif error-self.prev_erro  > self.max:
+                    self.integral  += self.max-self.min
 
             if not self.debug_time:
                 xtime = time.time()
@@ -201,6 +212,9 @@ class control:
                 self.prev_time = xtime
             else:
                 self.integral += ((error)*self.K)*(self.debug_time)
+
+            self.prev_erro = error
+
             return self.integral
 
     # Combined P, I and/or D controller.
