@@ -10,6 +10,7 @@ from data_logger import logger
 from easyflie import easyflie
 from raspberry_socketreader import viconUDP
 from path_follow import PathFollow
+from ComplimentaryThrust import baroZestimator
 #from path_visualizer import path_visualizer
 
 # Library for data logging
@@ -193,16 +194,24 @@ if __name__ == '__main__':
     # Tells treads to keep running
     running = True
 
-    # Start program thread
-    loader = Thread(target=thread_setpoint_loader2)
-    loader.start()
-    time.sleep(0.2)
-
     # Start drone loagger thread
     if log_drone:
         drone_logger = Thread(target=thread_drone_log)
         drone_logger.start()
         time.sleep(0.2)
+
+    baro_est = baroZestimator(30)
+    while baro_est.takeAverage2():
+        baro_est.vicon = vicon_udp.getTimestampedData()[3]
+        baro_est.baro = drone_data.get('baro.pressure')
+        time.sleep(0.05)
+
+    # Start program thread
+    loader = Thread(target=thread_setpoint_loader2)
+    loader.start()
+    time.sleep(0.2)
+
+
 
     # Start all controllers
     CON = [pid_thrust,pid_pitch,pid_roll,pid_yaw]
