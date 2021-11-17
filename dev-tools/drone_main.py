@@ -4,7 +4,7 @@ import time
 
 from threading import Thread
 from math import pi,cos,sin
-from pitchRoll_estimator import pitchRoll_estimator
+from state_estimator import state_estimator
 
 from controllers import control
 from data_logger import logger
@@ -74,27 +74,7 @@ def thread_drone_log():
                 drone_data = log_entry[1]
                 if not running: break
 
-def thread_state_estimator():
-    global running, vicon_data, drone_data, est_position
-    ini_pos = {'x':vicon_data[1], 'y':vicon_data[2], 'z':vicon_data[3], 'yaw':vicon_data[6]}
-    xy_pos_estimator = pitchRoll_estimator(ini_pos)
-    gyro_data = {'x','y'}
-    acc_data = {'x','y','z'}
-
-    while running:
-        gyro_data['x'] = drone_data['gyro_x']; gyro_data['y'] = drone_data['gyro_y']
-        acc_data['x'] = drone_data['acc_x']; acc_data['y'] = drone_data['acc_y']; acc_data['z'] = drone_data['acc_z']
-        baro_data = drone_data['baro_pressure']        
-
-        #Finds x- and y-position
-        xy_pos = xy_pos_estimator.update(gyro_data,acc_data,drone_data['stateEstimate_yaw'])
-
-        #Insert z-estimator here
-
-        est_position['x'] = xy_pos['x']
-        est_position['y'] = xy_pos['y']
-        est_position['yaw'] = drone_data['stateEstimate_yaw']
-        time.sleep(1/(6*conf['vicon_freq']))  
+  
 
 # Main program / control loop
 def thread_main_loop():
@@ -235,7 +215,7 @@ if __name__ == '__main__':
     # Tells treads to keep running
     running = True
 
-    # Start drone loagger thread
+    # Start drone logger thread
     if log_drone:
         drone_logger = Thread(target=thread_drone_log)
         drone_logger.start()
@@ -246,6 +226,8 @@ if __name__ == '__main__':
         baro_est.vicon = vicon_udp.getTimestampedData()[3]
         baro_est.baro = drone_data.get('baro.pressure')
         time.sleep(0.05)
+
+    
 
     # Start program thread
     loader = Thread(target=thread_setpoint_loader2)
