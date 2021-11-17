@@ -4,6 +4,7 @@ import time
 
 from threading import Thread
 from math import pi,cos,sin
+from pitchRoll_estimator import pitchRoll_estimator
 
 from controllers import control
 from data_logger import logger
@@ -54,7 +55,7 @@ def thread_setpoint_loader():
 # Flight path following thread
 def thread_setpoint_loader2():
     global sp,running,vicon_data,path
-    vicon_data = [0,0,0,0]
+    vicon_data = [0,0,0,0,0,0]
     while running:
         sp = path.getRef(vicon_data) 
         print(sp)
@@ -73,9 +74,31 @@ def thread_drone_log():
                 drone_data = log_entry[1]
                 if not running: break
 
+def thread_state_estimator():
+    global running, vicon_data, drone_data, est_position
+    ini_pos = {'x':vicon_data[1], 'y':vicon_data[2], 'z':vicon_data[3], 'yaw':vicon_data[6]}
+    xy_pos_estimator = pitchRoll_estimator(ini_pos)
+    gyro_data = {'x','y'}
+    acc_data = {'x','y','z'}
+
+    while running:
+        gyro_data['x'] = drone_data['gyro_x']; gyro_data['y'] = drone_data['gyro_y']
+        acc_data['x'] = drone_data['acc_x']; acc_data['y'] = drone_data['acc_y']; acc_data['z'] = drone_data['acc_z']
+        baro_data = drone_data['baro_pressure']        
+
+        #Finds x- and y-position
+        xy_pos = xy_pos_estimator.update(gyro_data,acc_data,drone_data['stateEstimate_yaw'])
+
+        #Insert z-estimator here
+
+        est_position['x'] = xy_pos['x']
+        est_position['y'] = xy_pos['y']
+        est_position['yaw'] = drone_data['stateEstimate_yaw']
+        time.sleep(1/(6*conf['vicon_freq']))  
+
 # Main program / control loop
 def thread_main_loop():
-    global sp,running,vicon_data,drone_data
+    global sp,running,vicon_data,drone_data,est_position
 
     # Add column title to log file
     if log : col_titles = ['time','x_pos','y_pos','z_pos','x_rot','y_rot','z_rot','delta_time','z_filtered']    # LOG CLUSTER 1
@@ -86,6 +109,8 @@ def thread_main_loop():
     if log and log_drone : col_titles += [conf["drone_log"][entry]['id'] for entry in conf["drone_log"]]        # LOG CLUSTER 6
     if log : vicon_log.log_data(col_titles)
     if log : del col_titles
+
+    position = {"x": 0, "y" : 0, "z":0, "yaw":0}
 
     while running:
         # Get vicon data and log it
@@ -99,14 +124,27 @@ def thread_main_loop():
         sp['y'] = control.limiter(sp['y'],**conf['room_limits']['y'])
         sp['z'] = control.limiter(sp['z'],**conf['room_limits']['z'])
 
+        if sp['viconAvailable'] == 1:
+            #Flight with Vicon
+            position['x']   = vicon_data[1]
+            position['y']   = vicon_data[2]
+            position['z']   = vicon_data[3]
+            position['yaw'] = vicon_data[6]
+        else:
+            #Flight without Vicon
+            position['x'] = est_position['x']
+            position['y'] = est_position['y']
+            position['z']   = vicon_data[3] #Replace when estimator ready
+            position['yaw'] = vicon_data[6] # Replace when estimator ready
+
         # Calculate error in position and yaw
-        x_error_room = (sp.get('x')-vicon_data[1])/1000
-        y_error_room = (sp.get('y')-vicon_data[2])/1000
-        z_error = (sp.get('z')-vicon_data[3])/1000
-        yaw_error = sp.get('yaw')+(vicon_data[6]*(180/pi)) 
+        x_error_room = (sp.get('x')-position['x'])/1000
+        y_error_room = (sp.get('y')-position['y'])/1000
+        z_error = (sp.get('z')-position['z'])/1000
+        yaw_error = sp.get('yaw')+(position['yaw']*(180/pi)) 
 
         # Apply filter to temporary z-rotation value
-        z_rot_filtered = filter_yaw.update(vicon_data[6])
+        z_rot_filtered = filter_yaw.update(position['yaw'])
         if log : log_data += [z_rot_filtered] # LOG CLUSTER 1 
 
         # Allowing for yaw, calculating errors in drones bodyframe
@@ -161,7 +199,7 @@ def thread_main_loop():
         
 if __name__ == '__main__':
 
-    global conf,drone_data
+    global conf,drone_data,est_position
     conf = config_load_from_file()
 
     # Setup vicon udp reader and logger
@@ -170,6 +208,9 @@ if __name__ == '__main__':
 
     # Log data from drone
     drone_data = {}
+    
+    #Holds estimated pos
+    est_position = {'x','y','z','yaw'}
 
     #SP loader with path follow
     path = PathFollow(conf["course_params"]["check_radius"], conf["course_params"]["file_path"])
