@@ -56,7 +56,9 @@ class PathFollow:
             return {"x":float(self.path[self.count][0]),
                     "y":float(self.path[self.count][1]),
                     "z":float(self.path[self.count][2]),
-                    "yaw":float(self.path[self.count][3])} 
+                    "yaw":float(self.path[self.count][3]),
+                    "holdTime":float(self.path[self.count][4]),
+                    "viconAvailable":float(self.path[self.count][5])} 
        
         # return xRef, yRef, zRef, Yaw
 
