@@ -1,4 +1,4 @@
-from _typeshed import Self
+
 from pitchRoll_estimator import pitchRoll_estimator
 
 class state_estimator:
