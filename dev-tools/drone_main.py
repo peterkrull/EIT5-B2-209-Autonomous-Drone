@@ -107,7 +107,7 @@ def thread_main_loop():
         sp['z'] = control.limiter(sp['z'],**conf['room_limits']['z'])
 
         if bool(drone_data):
-            estimated_position = state_est.update(vicon_data, drone_data)
+            estimated_position = state_est.update(vicon_data, drone_data,sp['viconAvailable'])
 
         if sp['viconAvailable'] == 1:
             #Flight with Vicon
@@ -119,8 +119,8 @@ def thread_main_loop():
             #Flight without Vicon
             position['x']   = estimated_position['x']
             position['y']   = estimated_position['y']
-            position['z']   = estimated_position['z'] #Replace when estimator ready
-            position['yaw'] = estimated_position['yaw'] # Replace when estimator ready
+            position['z']   = estimated_position['z'] 
+            position['yaw'] = estimated_position['yaw'] 
 
         # Calculate error in position and yaw
         x_error_room = (sp.get('x')-position['x'])/1000
