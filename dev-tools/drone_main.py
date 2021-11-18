@@ -65,6 +65,7 @@ def thread_setpoint_loader2():
 def thread_drone_log():
     global drone_data, running
     lg_stab = LogConfig(name='category', period_in_ms=10)
+    start_time = time.time()
     for entry in conf['drone_log']:
         lg_stab.add_variable(entry,conf['drone_log'][entry]['type'])
 
@@ -72,7 +73,7 @@ def thread_drone_log():
         with SyncLogger(SyncCrazyflie(cf.URI,cf=cf.cf), lg_stab) as logger:
             for log_entry in logger:
                 drone_data = log_entry[1]
-                drone_data['time'] = time.time()
+                drone_data['time'] = time.time()- start_time
                 if not running: break
 
   
