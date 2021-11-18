@@ -14,11 +14,12 @@ class state_estimator:
 
         #state estimation missing z
         self.est_pos['yaw'] = drone_data['stateEstimate_yaw']
-        self.est_pos['x','y'] = self.xy_estimator.update(gyro_data, acc_data,self.self.pos['yaw'])
+        self.est_pos['x','y'] = self.xy_estimator.update(gyro_data, acc_data,self.pos['yaw'],drone_data['time'])
         self.est_pos['z'] = vicon_data['z'] #update pos using z-estimator
         
         if vicon_data['vicon_availabe'] == 1:
             #use vicon to acquire actual position to improve positioning of data.
             pass
-            
+        
+        return self.est_pos
 
