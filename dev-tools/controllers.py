@@ -78,6 +78,10 @@ class control:
             self.filter = system
             self.order = order
             self.filters = [system(**kwargs) for _ in range(order)]
+            if hasattr(system, 'start'):
+                for filter in self.filters:
+                    filter.start()
+
 
         def update(self,value):
             """
