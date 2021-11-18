@@ -11,10 +11,10 @@ class complementary:
         return data_1*self.k + data_2*(1-self.k)
 
 class pitchroll:
-    def __init__(self,k):
+    def __init__(self,k,start_time = 0):
         self.comp = complementary(k)
         self.prev_gyro = 0.0
-        self.prev_time = 0.0
+        self.prev_time = start_time
         self.angle = 0.0
 
     def update(self,gyro,acc,acc_z,time):
