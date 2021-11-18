@@ -4,6 +4,13 @@ import time
 
 class pitchRoll_estimator:
     def __init__(self,pos):
+        """
+        Initializes pitchRoll_estimator based on an initial position
+
+        Args:
+            pos (dict) {'x','y'} Initial position of the drone in the positioning systems reference frame
+        """
+
         self.g = 9.82
         self.start_time = time.time()
         self.prev_update = self.start_time
@@ -16,6 +23,16 @@ class pitchRoll_estimator:
         self.body_vel = {'x':0, 'y':0}
 
     def __update_bodyAcc(self, gyro,acc,acc_z, t,angle):
+        """
+        Calculates the acceleration in the bodyframe based on gyro and accelerometer data
+
+        Args:
+            gyro (float) rotational speed : unit [rad/s]
+            acc  (float) acceleration : unit g [m/s^2]
+            acc_z (float) acceleration perpendicular to the drone : unit g [m/s^2]
+            t (float) unix time : unit [s]
+        """
+
         est_angle = self.filters[angle].update(gyro,acc,acc_z,t)
         #Currently estimates acceleration using approximation described in report, 
         #if upgrade needed use thrust for more precise calculation
@@ -23,7 +40,15 @@ class pitchRoll_estimator:
         return est_acc
 
     def update(self,gyro,acc,yaw,t):
-        #t = time.time
+        """
+        Updates the pitchRoll_estimator with coordinates in the inertial frame
+
+        Args:
+            gyro (dict) {'x','y'} : unit [rad/s] rotational speed around the different axis
+            acc  (dict) {'x','y','z'} : unit g [m/s^2] Acceleration along the different axis
+            yaw (float) : unit [degrees] the current yaw of the drone
+            t (float) : unit [s] unix time
+        """
         #Finds acceleration in the drones body coordinates
         pitch_acc = self.__update_bodyAcc(gyro['x'],acc['x'],acc['z'], t, 'pitch')
         roll_acc = self.__update_bodyAcc(gyro['y'],acc['y'],acc['z'], t, 'roll')
