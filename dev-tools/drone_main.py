@@ -72,13 +72,14 @@ def thread_drone_log():
         with SyncLogger(SyncCrazyflie(cf.URI,cf=cf.cf), lg_stab) as logger:
             for log_entry in logger:
                 drone_data = log_entry[1]
+                drone_data['time'] = time.time()
                 if not running: break
 
   
 
 # Main program / control loop
 def thread_main_loop():
-    global sp,running,vicon_data,drone_data,est_position
+    global sp,running,vicon_data,drone_data
 
     # Add column title to log file
     if log : col_titles = ['time','x_pos','y_pos','z_pos','x_rot','y_rot','z_rot','delta_time','z_filtered']    # LOG CLUSTER 1
@@ -90,7 +91,8 @@ def thread_main_loop():
     if log : vicon_log.log_data(col_titles)
     if log : del col_titles
 
-    position = {"x": 0, "y" : 0, "z":0, "yaw":0}
+    position = {}
+    estimated_position = {}
 
     while running:
         # Get vicon data and log it
@@ -104,18 +106,21 @@ def thread_main_loop():
         sp['y'] = control.limiter(sp['y'],**conf['room_limits']['y'])
         sp['z'] = control.limiter(sp['z'],**conf['room_limits']['z'])
 
+        if bool(drone_data):
+            estimated_position = state_est.update(vicon_data, drone_data)
+
         if sp['viconAvailable'] == 1:
             #Flight with Vicon
             position['x']   = vicon_data[1]
             position['y']   = vicon_data[2]
-            position['z']   = vicon_data[3]
+            position['z']   = vicon_data[3]  
             position['yaw'] = vicon_data[6]
         else:
             #Flight without Vicon
-            position['x'] = est_position['x']
-            position['y'] = est_position['y']
-            position['z']   = vicon_data[3] #Replace when estimator ready
-            position['yaw'] = vicon_data[6] # Replace when estimator ready
+            position['x']   = estimated_position['x']
+            position['y']   = estimated_position['y']
+            position['z']   = estimated_position['z'] #Replace when estimator ready
+            position['yaw'] = estimated_position['yaw'] # Replace when estimator ready
 
         # Calculate error in position and yaw
         x_error_room = (sp.get('x')-position['x'])/1000
@@ -188,9 +193,6 @@ if __name__ == '__main__':
 
     # Log data from drone
     drone_data = {}
-    
-    #Holds estimated pos
-    est_position = {'x','y','z','yaw'}
 
     #SP loader with path follow
     path = PathFollow(conf["course_params"]["check_radius"], conf["course_params"]["file_path"])
@@ -227,7 +229,9 @@ if __name__ == '__main__':
         baro_est.baro = drone_data.get('baro.pressure')
         time.sleep(0.05)
 
-    
+    #State estimator for panic-mode
+    init_pos = vicon_udp.getTimestampedData()
+    state_est = state_estimator({'x':init_pos[2],'y':init_pos[3],'z':init_pos[4],'yaw':init_pos[6]})    
 
     # Start program thread
     loader = Thread(target=thread_setpoint_loader2)
