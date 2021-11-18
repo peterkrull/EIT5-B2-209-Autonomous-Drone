@@ -153,3 +153,6 @@ ArrayHeight = [49, 143, 366, 565, 763, 967, 1173, 1371, 1568, 1776, 1990, 2184, 
 %Plot Tryk som funktion af højde
 figure(4)
 plot(ArrayHeight,-ArrayTryk)
+
+figure(5)
+plot(B.z_pos,-B.baro_pressure,'x')
