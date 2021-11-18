@@ -1,4 +1,3 @@
-
 from pitchRoll_estimator import pitchRoll_estimator
 
 class state_estimator:
@@ -11,9 +10,10 @@ class state_estimator:
         """
 
 
-        self.est_pos = {'x','y','z','yaw'}
+        self.init_pos = init_pos
+        self.est_pos = init_pos
         self.xy_estimator = pitchRoll_estimator(init_pos)
-        self.pos = {'x','y','z','yaw'}
+        self.pos = init_pos
 
 
     def update(self, vicon_data, drone_data,vicon_available):
@@ -31,8 +31,11 @@ class state_estimator:
 
         #state estimation missing z
         self.est_pos['yaw'] = drone_data['stateEstimate_yaw']
-        self.est_pos['x','y'] = self.xy_estimator.update(gyro_data, acc_data,self.pos['yaw'],drone_data['time'])
-        self.est_pos['z'] = vicon_data['z'] #update pos using z-estimator
+        xy = self.xy_estimator.update(gyro_data, acc_data,self.pos['yaw'],drone_data['time'])
+        self.est_pos['x'] = xy['x']
+        #print("x",xy['x'])
+        self.est_pos['y'] = xy['y']
+        self.est_pos['z'] = vicon_data[3] #update pos using z-estimator
         
         if vicon_available == 1:
             #use vicon to acquire actual position to improve positioning of data.
