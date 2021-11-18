@@ -20,7 +20,7 @@ sum = 0;
 for i = 1:length(A.Var9)
     sum = sum + A.Var9(i);
 end
-gennemsnit = sum/length(A.Var9);
+gennemsnit = sum/length(A.Var9)
 
 %Plot data for 0cm over gulvet uden thrust
 figure(1)
@@ -31,6 +31,14 @@ xlim([0,30])
 xlabel('Time [s]') 
 ylabel('Pressure [mbar]') 
 hold off
+
+x0=0;
+   y0=0;
+   plotwidth=400;
+   height=300;
+   set(gcf,'position',[x0,y0,plotwidth,height])
+   
+exportgraphics(gcf,'0cmAbove.pdf','ContentType','vector')
 
 %Plot z-højde Vicon som funktion af tid
 figure(2)
