@@ -41,7 +41,7 @@ class PathFollow:
         print("DS",distPosToRef)
         
         
-        if(distPosToRef < self.radiusUpdate):     #Hvis inden for radius til 
+        if(distPosToRef < self.radiusUpdate):     #If inside update radius
             #Remove comments to hold positions before flying
             #if(self.timeStamped = False):
                 #self.timeStamped = True
