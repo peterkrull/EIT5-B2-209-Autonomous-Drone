@@ -1,4 +1,4 @@
-from complementary import complementary
+from complementary import complementary, pitchroll
 from math import sin, cos, pi
 import time 
 
@@ -8,8 +8,8 @@ class pitchRoll_estimator:
         self.start_time = time.time()
         self.prev_update = self.start_time
 
-        pitch_filter = complementary(.1,prev_time=self.start_time)
-        roll_filter = complementary(.1,prev_time=self.start_time)
+        pitch_filter = pitchroll(.1,start_time=self.start_time)
+        roll_filter = pitchroll(.1,start_time=self.start_time)
 
         self.filters = {'pitch':pitch_filter, 'roll':roll_filter}
         self.pos = {'x':pos['x'], 'y':pos['y']}
@@ -22,8 +22,8 @@ class pitchRoll_estimator:
         est_acc = sin(est_angle*pi/180) * self.g 
         return est_acc
 
-    def update(self,gyro,acc,yaw):
-        t = time.time
+    def update(self,gyro,acc,yaw,t):
+        #t = time.time
         #Finds acceleration in the drones body coordinates
         pitch_acc = self.__update_bodyAcc(gyro['x'],acc['x'],acc['z'], t, 'pitch')
         roll_acc = self.__update_bodyAcc(gyro['y'],acc['y'],acc['z'], t, 'roll')
