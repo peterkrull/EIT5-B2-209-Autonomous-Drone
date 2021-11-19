@@ -4,7 +4,7 @@ import time
 
 from threading import Thread
 from math import pi,cos,sin
-from pitchRoll_estimator import pitchRoll_estimator
+from state_estimator import state_estimator
 
 from controllers import control
 from data_logger import logger
@@ -65,40 +65,23 @@ def thread_setpoint_loader2():
 def thread_drone_log():
     global drone_data, running
     lg_stab = LogConfig(name='category', period_in_ms=10)
+    start_time = time.time()
     for entry in conf['drone_log']:
         lg_stab.add_variable(entry,conf['drone_log'][entry]['type'])
 
     while running:
-        with SyncLogger(SyncCrazyflie(cf.URI,cf=cf.cf), lg_stab) as logger:
-            for log_entry in logger:
-                drone_data = log_entry[1]
-                if not running: break
+        with SyncCrazyflie(cf.URI,cf=cf.cf) as scf:
+            with SyncLogger(scf, lg_stab) as logger:
+                for log_entry in logger:
+                    drone_data = log_entry[1]
+                    drone_data['time'] = time.time()- start_time
+                    if not running: break
 
-def thread_state_estimator():
-    global running, vicon_data, drone_data, est_position
-    ini_pos = {'x':vicon_data[1], 'y':vicon_data[2], 'z':vicon_data[3], 'yaw':vicon_data[6]}
-    xy_pos_estimator = pitchRoll_estimator(ini_pos)
-    gyro_data = {'x','y'}
-    acc_data = {'x','y','z'}
-
-    while running:
-        gyro_data['x'] = drone_data['gyro_x']; gyro_data['y'] = drone_data['gyro_y']
-        acc_data['x'] = drone_data['acc_x']; acc_data['y'] = drone_data['acc_y']; acc_data['z'] = drone_data['acc_z']
-        baro_data = drone_data['baro_pressure']        
-
-        #Finds x- and y-position
-        xy_pos = xy_pos_estimator.update(gyro_data,acc_data,drone_data['stateEstimate_yaw'])
-
-        #Insert z-estimator here
-
-        est_position['x'] = xy_pos['x']
-        est_position['y'] = xy_pos['y']
-        est_position['yaw'] = drone_data['stateEstimate_yaw']
-        time.sleep(1/(6*conf['vicon_freq']))  
+  
 
 # Main program / control loop
 def thread_main_loop():
-    global sp,running,vicon_data,drone_data,est_position
+    global sp,running,vicon_data,drone_data
 
     # Add column title to log file
     if log : col_titles = ['time','x_pos','y_pos','z_pos','x_rot','y_rot','z_rot','delta_time','z_filtered']    # LOG CLUSTER 1
@@ -110,7 +93,8 @@ def thread_main_loop():
     if log : vicon_log.log_data(col_titles)
     if log : del col_titles
 
-    position = {"x": 0, "y" : 0, "z":0, "yaw":0}
+    position = {}
+    estimated_position = {}
 
     while running:
         # Get vicon data and log it
@@ -124,18 +108,21 @@ def thread_main_loop():
         sp['y'] = control.limiter(sp['y'],**conf['room_limits']['y'])
         sp['z'] = control.limiter(sp['z'],**conf['room_limits']['z'])
 
+        if bool(drone_data):
+            estimated_position = state_est.update(vicon_data, drone_data,sp['viconAvailable'])
+
         if sp['viconAvailable'] == 1:
             #Flight with Vicon
             position['x']   = vicon_data[1]
             position['y']   = vicon_data[2]
-            position['z']   = vicon_data[3]
+            position['z']   = vicon_data[3]  
             position['yaw'] = vicon_data[6]
         else:
             #Flight without Vicon
-            position['x'] = est_position['x']
-            position['y'] = est_position['y']
-            position['z']   = vicon_data[3] #Replace when estimator ready
-            position['yaw'] = vicon_data[6] # Replace when estimator ready
+            position['x']   = estimated_position['x']
+            position['y']   = estimated_position['y']
+            position['z']   = estimated_position['z'] 
+            position['yaw'] = estimated_position['yaw'] 
 
         # Calculate error in position and yaw
         x_error_room = (sp.get('x')-position['x'])/1000
@@ -208,9 +195,6 @@ if __name__ == '__main__':
 
     # Log data from drone
     drone_data = {}
-    
-    #Holds estimated pos
-    est_position = {'x','y','z','yaw'}
 
     #SP loader with path follow
     path = PathFollow(conf["course_params"]["check_radius"], conf["course_params"]["file_path"])
@@ -235,7 +219,7 @@ if __name__ == '__main__':
     # Tells treads to keep running
     running = True
 
-    # Start drone loagger thread
+    # Start drone logger thread
     if log_drone:
         drone_logger = Thread(target=thread_drone_log)
         drone_logger.start()
@@ -247,12 +231,14 @@ if __name__ == '__main__':
         baro_est.baro = drone_data.get('baro.pressure')
         time.sleep(0.05)
 
+    #State estimator for panic-mode
+    init_pos = vicon_udp.getTimestampedData()
+    state_est = state_estimator({'x':init_pos[2],'y':init_pos[3],'z':init_pos[4],'yaw':init_pos[6]})    
+
     # Start program thread
     loader = Thread(target=thread_setpoint_loader2)
     loader.start()
     time.sleep(0.2)
-
-
 
     # Start all controllers
     CON = [pid_thrust,pid_pitch,pid_roll,pid_yaw]

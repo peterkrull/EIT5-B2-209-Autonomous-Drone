@@ -78,6 +78,10 @@ class control:
             self.filter = system
             self.order = order
             self.filters = [system(**kwargs) for _ in range(order)]
+            if hasattr(system, 'start'):
+                for filter in self.filters:
+                    filter.start()
+
 
         def update(self,value):
             """
@@ -143,7 +147,7 @@ class control:
 
     # Derivative gain
     class derivative:
-        def __init__(self,K, tau = None, order = None,debug_time = None,rollover_min = None,rollover_max = None,**kwargs):
+        def __init__(self,K = 1, tau = None, order = None,debug_time = None,rollover_min = None,rollover_max = None,**kwargs):
             
             self.min = rollover_min
             self.max = rollover_max
@@ -185,7 +189,7 @@ class control:
             
     # Integral gain
     class integral:
-        def __init__(self,K,debug_time = None,rollover_min = None,rollover_max = None):
+        def __init__(self,K = 1,debug_time = None,rollover_min = None,rollover_max = None):
             self.min = rollover_min
             self.max = rollover_max
 

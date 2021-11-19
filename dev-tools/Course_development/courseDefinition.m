@@ -1,7 +1,7 @@
 clear
 set(findall(gcf,'-property','FontSize'),'FontSize',13)
 set(findall(gcf,'-property','Font'),'Font','Roman')
-exportFigures = false;
+exportFigures = true;
 
 areaWidth = 2.05; %Width of the flight area
 areaHeight = 3.45; %Height of the flight area
@@ -105,10 +105,11 @@ plot3(totalCourse(:,1),totalCourse(:,2),totalCourse(:,3))
 hold on
 plot3(courseToStartPoint(:,1),courseToStartPoint(:,2),courseToStartPoint(:,3));
 plot3(circumference(:,1),circumference(:,2),circumference(:,3));
-
-xlabel('x-axis [m]');
-ylabel('y-axis [m]');
-zlabel('z-axis [m]');
+%Linie for no vicon data
+% Convert color code to 1-by-3 RGB array (0~1 each)
+str = '#77AC30';
+color = sscanf(str(2:end),'%2x%2x%2x',[1 3])/255;
+plot3(totalCourse(2400:end,1),totalCourse(2400:end,2),totalCourse(2400:end,3),'Color',color)
 xlimit =[-2.1 0.2];
 ylimit =[-3.5 0.05];
 
@@ -119,7 +120,7 @@ p2 = [-1 0 0];
 mArrow3(p1,p1+p2*courseScale);
 
 
-legend('Course','Takeoff/Landing','Takeoff/Landing Site','Location','best');
+legend('Course','Takeoff/Landing','Takeoff/Landing Site','No Vicon data','Location','best');
 %legend('boxoff')
 hold off
 
@@ -143,10 +144,11 @@ figure(2)
 plot(totalCourse(:,1),totalCourse(:,2))
 hold on
 plot(circumference(:,1),circumference(:,2))
+plot(totalCourse(2400:end,1),totalCourse(2400:end,2),'Color',color)
 xlabel('x-axis [m]');
 ylabel('y-axis [m]');
 zlabel('z-axis [m]');
-legend('Course','Takeoff/Landing Site','Location','south east');
+legend('Course','Takeoff/Landing Site','No Vicon data','Location','south east');
 axis equal
 grid on
 x0=0;
@@ -163,3 +165,4 @@ end
 
 %Writes route description to a csv-file
 writematrix(totalCourse,'courseDescriptionHD.csv');
+
