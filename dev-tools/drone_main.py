@@ -229,18 +229,12 @@ if __name__ == '__main__':
         drone_logger.start()
         time.sleep(0.2)
 
-    baro_est = baroZestimator(30)
-    print("Calibrating barometer at ground level:")
-    while baro_est.takeAverage2():
-        baro_est.vicon = vicon_udp.getTimestampedData()[3]
-        baro_est.baro = drone_data.get('baro.pressure')
-        time.sleep(0.05)
-        print(".",end="",flush=True)
-    print("\nCalibration complete.")
-
-    #State estimator for panic-mode
+    # State estimator for panic-mode
     init_pos = vicon_udp.getTimestampedData()
     state_est = state_estimator({'x':init_pos[2],'y':init_pos[3],'z':init_pos[4],'yaw':init_pos[6]})    
+
+    # Calibrate barometric pressure
+    while state_est.z_estimator.calibrate(viconUDP.getTimestampedData,drone_data['baro_pressure']): pass
 
     # Start program thread
     loader = Thread(target=thread_setpoint_loader2)

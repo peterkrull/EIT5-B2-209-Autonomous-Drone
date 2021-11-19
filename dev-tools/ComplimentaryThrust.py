@@ -1,11 +1,14 @@
 import time
-import numpy
-import csv
 import controllers as c
-
+import complementary as com
 
 class baroZestimator:
     def __init__(self,avg_len):
+        """Estimates z-height from barometric pressure and a running average of an absolute height value
+
+        Args:
+            avg_len (int): number of absolute samples to use for moving average
+        """
         self.baro, self.vicon = None,None
         self.average, self.height = [],[]
         self.init_avg, self.init_height = None,None
@@ -34,19 +37,31 @@ class baroZestimator:
         baroZ_estimate = (((self.est_height-self.init_height)/(self.est_avg-self.init_avg))*(self.average[len(self.average)-1]-self.init_avg) + self.init_height)
         return baroZ_estimate
 
-import random
+class thrust_estimator:
+    def __init__(self,K,amount):
+        self.baro_est = baroZestimator(amount)
+        self.complementary = com.thrust(K)
 
-# Double integration
-Dinte = c.control.cascade(c.control.integral,2,K = 1)
+    def calibrate(self,vicon_udp:function,barometer:float) -> bool:
+        if not self.baro_est:
+            print("Calibrating barometer at ground level:")
+            time.sleep(1)
+        self.baro_est.vicon = vicon_udp()[3]
+        self.baro_est.baro = barometer
+        time.sleep(0.05)
+        print(".",end="",flush=True)
+        done_status = self.baro_est.takeAverage()
+        if done_status:
+            return done_status
+        else:
+            print("Initial calibration complete") 
+            return done_status
 
-# Setup and initial calibration
-baro_est = baroZestimator(30)
-while baro_est.takeAverage():
-    baro_est.vicon = random.randrange(0,10)
-    baro_est.baro = random.randrange(0,100)
-
-# Running average
-for i in range(100):
-    baro_est.vicon = random.randrange(900,1000)
-    baro_est.baro = random.randrange(9000,10000)
-    print("RUNNING AVG",baro_est.estimate())
+    def update(self,vicon_available,vicon_data,drone_data):
+        if vicon_available:
+            self.baro_est.vicon = vicon_data[3]
+        if drone_data:
+            self.baro_est.baro = drone_data['baro.pressure']
+        z_est = self.baro_est.estimate()
+        self.complementary.update(z_est,drone_data['acc_z'],drone_data['time'])
+    
