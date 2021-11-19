@@ -31,7 +31,8 @@ class baroZestimator:
 
     def estimate(self):
         self.takeAverage()
-        return (((self.est_height-self.init_height)/(self.est_avg-self.init_avg))*(self.average[len(self.average)-1]-self.init_avg) + self.init_height)
+        baroZ_estimate = (((self.est_height-self.init_height)/(self.est_avg-self.init_avg))*(self.average[len(self.average)-1]-self.init_avg) + self.init_height)
+        return baroZ_estimate
 
 import random
 
@@ -49,25 +50,3 @@ for i in range(100):
     baro_est.vicon = random.randrange(900,1000)
     baro_est.baro = random.randrange(9000,10000)
     print("RUNNING AVG",baro_est.estimate())
-
-class compThrust:
-    
-    def __init__(self):
-        self.k = 2
-
-
-    def calibrate(self, baroData, avgVal):
-
-        for i in range(avgVal):
-            self.sum = self.sum + baroData[i]
-        return self.sum/avgVal
-
-    def update(self, baroData, acczData):
-        dIntegrate = acczData
-
-#a = compThrust()
-
-#print(a.calibrate(listBaro,30))
-
-#for i in range(len(listBaro)):
-#    print(listBaro.append([i]))
