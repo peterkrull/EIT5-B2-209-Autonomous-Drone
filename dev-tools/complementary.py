@@ -1,6 +1,5 @@
 import time
 import numpy
-from numpy.lib.function_base import angle
 from controllers import control
 
 #Complementary filter
@@ -52,3 +51,21 @@ class cascaded_complementary_filter_pitchRoll:
         self.angle = self.comp.update(integrate_gyro, acc_angle)
         #print("Angle", self.angle)
         return self.angle
+
+class thrust:
+    def __init__(self,k):
+        self.comp = complementary(k)
+        self.prev_acc = 0.0
+        self.prev_time = 0.0
+        self.thrust = 0.0
+
+    def update(self,baro,acc_z,time):
+        #Calculate integral of accelerometer data 
+        xtime = time
+        integrate_acc = acc_z*(xtime-self.prev_time)**2
+        self.prev_time = xtime
+        
+        self.thrust = self.comp.update(baro,(self.prev_acc + integrate_acc))
+        self.prev_acc = self.thrust
+
+        return self.thrust
