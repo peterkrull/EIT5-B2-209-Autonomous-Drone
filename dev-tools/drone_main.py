@@ -70,11 +70,12 @@ def thread_drone_log():
         lg_stab.add_variable(entry,conf['drone_log'][entry]['type'])
 
     while running:
-        with SyncLogger(SyncCrazyflie(cf.URI,cf=cf.cf), lg_stab) as logger:
-            for log_entry in logger:
-                drone_data = log_entry[1]
-                drone_data['time'] = time.time()- start_time
-                if not running: break
+        with SyncCrazyflie(cf.URI,cf=cf.cf) as scf:
+            with SyncLogger(scf, lg_stab) as logger:
+                for log_entry in logger:
+                    drone_data = log_entry[1]
+                    drone_data['time'] = time.time()- start_time
+                    if not running: break
 
   
 
@@ -238,8 +239,6 @@ if __name__ == '__main__':
     loader = Thread(target=thread_setpoint_loader2)
     loader.start()
     time.sleep(0.2)
-
-
 
     # Start all controllers
     CON = [pid_thrust,pid_pitch,pid_roll,pid_yaw]
