@@ -77,8 +77,6 @@ def thread_drone_log():
                     drone_data['time'] = time.time()- start_time
                     if not running: break
 
-  
-
 # Main program / control loop
 def thread_main_loop():
     global sp,running,vicon_data,drone_data
@@ -122,7 +120,7 @@ def thread_main_loop():
             position['x']   = estimated_position['x']
             position['y']   = estimated_position['y']
             position['z']   = estimated_position['z'] 
-            position['yaw'] = estimated_position['yaw'] 
+            position['yaw'] = estimated_position['yaw']
 
         # Calculate error in position and yaw
         x_error_room = (sp.get('x')-position['x'])/1000
@@ -200,8 +198,14 @@ if __name__ == '__main__':
     path = PathFollow(conf["course_params"]["check_radius"], conf["course_params"]["file_path"])
      
     # setup crazyFlie client
+    print("Establishing CF connection")
     cf = easyflie()
     cf.send_start_setpoint()
+    time.sleep(0.2)
+    cf.send_stop_setpoint()
+    time.sleep(0.2)
+    cf.send_start_setpoint()
+    print("Connection established")
 
     # Setup PID control for all axes
     pid_thrust = control.PID(**conf["pid_vals"]["thrust"])
@@ -226,10 +230,13 @@ if __name__ == '__main__':
         time.sleep(0.2)
 
     baro_est = baroZestimator(30)
+    print("Calibrating barometer at ground level:")
     while baro_est.takeAverage2():
         baro_est.vicon = vicon_udp.getTimestampedData()[3]
         baro_est.baro = drone_data.get('baro.pressure')
         time.sleep(0.05)
+        print(".",end="",flush=True)
+    print("\nCalibration complete.")
 
     #State estimator for panic-mode
     init_pos = vicon_udp.getTimestampedData()
