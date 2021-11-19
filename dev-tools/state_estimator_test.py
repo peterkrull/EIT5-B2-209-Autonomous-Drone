@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 
-file = 'C:\\Users\\bosto\\Documents\\GitHub\\EIT5-B2-209-Autonomous-Drone\\test-results\\test-of-barometer\\1637152127_baro_meas.csv'
-
+#file = 'C:\\Users\\bosto\\Documents\\GitHub\\EIT5-B2-209-Autonomous-Drone\\test-results\\test-of-barometer\\1637152127_baro_meas.csv'
+file = 'C:\\Users\\bosto\\Documents\\GitHub\\EIT5-B2-209-Autonomous-Drone\\test-results\\onboard-sensor-drift\\1637063677_test_flyvning.csv'
 with open(file, newline='') as csvFile:
     dataReader = csv.DictReader(csvFile, delimiter=",")
     testDataHeader = dataReader.fieldnames
@@ -17,7 +17,7 @@ with open(file, newline='') as csvFile:
 
 pos = {'x':testData[0][1], 'y': testData[0][2], 'z': testData[0][3], 'yaw': testData[0][6]}
 
-state_est = state_estimator(pos)
+state_est = state_estimator(pos, k = .35)
 
 gx_index = testDataHeader.index("gyro_x")
 gy_index = testDataHeader.index("gyro_y")
@@ -82,4 +82,5 @@ yaw1, = plt.plot(x_axis, [a['yaw']for a in est_pos], label = "estimated yaw")
 yaw2, = plt.plot(x_axis, 180/np.pi *testData[:,6], label = "Measured yaw")
 plt.grid()
 plt.legend(handles = [yaw1,yaw2])
+
 plt.show()

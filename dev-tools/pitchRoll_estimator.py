@@ -3,7 +3,7 @@ from math import sin, cos, pi
 import time 
 
 class pitchRoll_estimator:
-    def __init__(self,pos):
+    def __init__(self,pos,k = .34):
         """
         Initializes pitchRoll_estimator based on an initial position
 
@@ -15,8 +15,8 @@ class pitchRoll_estimator:
         self.start_time = 0
         self.prev_update = self.start_time
 
-        pitch_filter = pitchroll(.4,start_time=self.start_time)
-        roll_filter = pitchroll(.3,start_time=self.start_time)
+        pitch_filter = pitchroll(k,start_time=self.start_time)
+        roll_filter = pitchroll(k,start_time=self.start_time)
 
         self.filters = {'pitch':pitch_filter, 'roll':roll_filter}
         self.pos = {'x':pos['x'], 'y':pos['y']}

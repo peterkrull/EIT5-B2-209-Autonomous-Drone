@@ -1,7 +1,7 @@
 from pitchRoll_estimator import pitchRoll_estimator
 
 class state_estimator:
-    def __init__(self, init_pos):
+    def __init__(self, init_pos, k = .34):
         """
         Initiates the state estimator based on an initial state
 
@@ -12,7 +12,7 @@ class state_estimator:
 
         self.init_pos = init_pos
         self.est_pos = init_pos
-        self.xy_estimator = pitchRoll_estimator(init_pos)
+        self.xy_estimator = pitchRoll_estimator(init_pos, k)
         self.pos = init_pos
 
 
