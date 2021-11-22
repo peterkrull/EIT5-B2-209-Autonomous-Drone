@@ -196,16 +196,6 @@ if __name__ == '__main__':
 
     #SP loader with path follow
     path = PathFollow(conf["course_params"]["check_radius"], conf["course_params"]["file_path"])
-     
-    # setup crazyFlie client
-    print("Establishing CF connection")
-    cf = easyflie()
-    cf.send_start_setpoint()
-    time.sleep(0.2)
-    cf.send_stop_setpoint()
-    time.sleep(0.2)
-    cf.send_start_setpoint()
-    print("Connection established")
 
     # Setup PID control for all axes
     pid_thrust = control.PID(**conf["pid_vals"]["thrust"])
@@ -223,18 +213,26 @@ if __name__ == '__main__':
     # Tells treads to keep running
     running = True
 
+    # setup crazyFlie client
+    print("Establishing CF connection")
+    cf = easyflie()
+
     # Start drone logger thread
     if log_drone:
-        drone_logger = Thread(target=thread_drone_log)
-        drone_logger.start()
-        time.sleep(0.2)
+        loader = Thread(target=thread_drone_log)
+        loader.start()
+
+    # Wait 1 second and initialize
+    time.sleep(1)
+    cf.send_start_setpoint()
+    print("Connection established")
 
     # State estimator for panic-mode
     init_pos = vicon_udp.getTimestampedData()
     state_est = state_estimator({'x':init_pos[2],'y':init_pos[3],'z':init_pos[4],'yaw':init_pos[6]})    
 
     # Calibrate barometric pressure
-    while state_est.z_estimator.calibrate(viconUDP.getTimestampedData,drone_data['baro_pressure']): pass
+    while state_est.z_estimator.calibrate(vicon_udp.getTimestampedData,drone_data['baro_pressure']): pass
 
     # Start program thread
     loader = Thread(target=thread_setpoint_loader2)
