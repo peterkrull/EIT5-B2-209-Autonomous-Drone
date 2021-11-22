@@ -28,11 +28,11 @@ class state_estimator:
             vicon_available (bool) True: vicon is available, False: vicon is not available
         """
 
-        gyro_data = {'x' : drone_data['gyro_x'], 'y' : drone_data['gyro_y'], 'z' : drone_data['gyro_z']}
-        acc_data = {'x': drone_data['acc_x'], 'y': drone_data['acc_y'], 'z': drone_data['acc_z']}
+        gyro_data = {'x' : drone_data['gyro.x'], 'y' : drone_data['gyro.y'], 'z' : drone_data['gyro.z']}
+        acc_data = {'x': drone_data['acc.x'], 'y': drone_data['acc.y'], 'z': drone_data['acc.z']}
 
         #state estimation missing z
-        self.est_pos['yaw'] = drone_data['stateEstimate_yaw']
+        self.est_pos['yaw'] = drone_data['stateEstimate.yaw']
         xy = self.xy_estimator.update(gyro_data, acc_data,self.pos['yaw'],drone_data['time'])
         z  = self.z_estimator.update(vicon_available,vicon_data,drone_data)
         self.est_pos['x'] = xy['x']
