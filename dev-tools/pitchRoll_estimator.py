@@ -32,11 +32,11 @@ class pitchRoll_estimator:
             acc_z (float) acceleration perpendicular to the drone : unit g [m/s^2]
             t (float) unix time : unit [s]
         """
-
+        drone_mass = 0.0318
         est_angle = self.filters[angle].update(gyro,acc,acc_z,t)
         #Currently estimates acceleration using approximation described in report, 
         #if upgrade needed use thrust for more precise calculation
-        est_acc = sin(est_angle*pi/180) * self.g 
+        est_acc = sin(est_angle*pi/180) * self.g /drone_mass
         return est_acc
 
     def update(self,gyro,acc,yaw,t):
