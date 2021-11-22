@@ -35,6 +35,7 @@ class baroZestimator:
     #             self.height.pop(0)
 
     def takeAverage(self):
+
         # Defind latest barometer measurement
         if self.baro:
             self.latest_baro = self.baro
@@ -49,13 +50,19 @@ class baroZestimator:
             if len(self.average) < self.avg_len and len(self.height) < self.avg_len:
                 self.init_avg = sum(self.average)/len(self.average)
                 self.init_height = sum(self.height)/len(self.height)
+                self.est_avg = sum(self.average)/len(self.average) + 1
+                self.est_height = sum(self.height)/len(self.height) + 1
            
             # Regular rolling average
-            elif len(self.average) >= self.avg_len and len(self.height) >= self.avg_len:
+            if len(self.average) >= self.avg_len and len(self.height) >= self.avg_len:
                 self.est_avg = sum(self.average)/len(self.average)
                 self.est_height = sum(self.height)/len(self.height)
                 self.average.pop(0)
                 self.height.pop(0)
+
+        # For initial calibration, return true to keep loop running
+        if len(self.average) < self.avg_len - 1 and len(self.height) < self.avg_len - 1:
+            return True
 
         # For initial calibration, return true to keep loop running
         if len(self.average) < self.avg_len and len(self.height) < self.avg_len:
@@ -63,10 +70,16 @@ class baroZestimator:
 
     def estimate(self):
         self.takeAverage()
-        pressure_gradient = (self.est_height-self.init_height)/(self.est_avg-self.init_avg)
-        z_estimate = pressure_gradient*(self.latest_baro-self.init_avg) + self.init_height
-        print(f"init baro : {self.init_avg}, init height {self.init_height} : latest baro : {self.est_avg}, latest height {self.est_height}, baro meas: {self.latest_baro}, est height {z_estimate}")
-        return z_estimate
+        #print(f"init baro : {self.init_avg}, init height {self.init_height} : latest baro : {self.est_avg}, latest height {self.est_height}, baro meas: {self.latest_baro}")
+        try:
+            pressure_gradient = (self.est_height-self.init_height)/(self.est_avg-self.init_avg)
+            baroZ_estimate = (pressure_gradient*(self.latest_baro-self.init_avg) + self.init_height)
+        except:
+            pressure_gradient = 1
+            baroZ_estimate = (pressure_gradient*(self.latest_baro-self.init_avg) + self.init_height)
+
+        #print(f"est height {baroZ_estimate}")
+        return baroZ_estimate
 
 class thrust_estimator:
     def __init__(self,K,amount):
