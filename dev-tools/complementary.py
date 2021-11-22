@@ -1,5 +1,5 @@
 import time
-import numpy
+import math
 from controllers import control
 
 #Complementary filter
@@ -21,11 +21,11 @@ class pitchroll:
     def update(self,gyro,acc,acc_z,time):
         #Calculate delta angel
         xtime = time
-        integrate_gyro = (gyro*(180/numpy.pi))*(xtime-self.prev_time)
+        integrate_gyro = (gyro*(180/math.pi))*(xtime-self.prev_time)
         self.prev_time = xtime
         
-        #self.angle = (180/numpy.pi)*(1-self.k)*numpy.arctan(acc/acc_z)+self.k*(self.prev_gyro+integrate_gyro)
-        self.angle = self.comp.update((self.prev_gyro+integrate_gyro),numpy.arctan(acc/acc_z)*(180/numpy.pi))
+        #self.angle = (180/math.pi)*(1-self.k)*math.arctan(acc/acc_z)+self.k*(self.prev_gyro+integrate_gyro)
+        self.angle = self.comp.update((self.prev_gyro+integrate_gyro),math.atan(acc/acc_z)*(180/math.pi))
         self.prev_gyro = self.angle
         return self.angle
 
@@ -40,13 +40,13 @@ class cascaded_complementary_filter_pitchRoll:
         self.PI_filter.start()
 
     def update(self,gyro,acc,acc_z,time):
-        acc_angle = numpy.arctan(acc/acc_z)*180/numpy.pi
+        acc_angle = math.atan(acc/acc_z)*180/math.pi
         print("PI input:", self.angle-acc_angle)
         PI_angle = self.PI_filter.update(self.angle-acc_angle)
         #print("Gyro", gyro,"PI angle", PI_angle)
         angle_vel = gyro-PI_angle
 
-        integrate_gyro = self.prev_gyro+(angle_vel*(180/numpy.pi))*(time-self.prev_time)
+        integrate_gyro = self.prev_gyro+(angle_vel*(180/math.pi))*(time-self.prev_time)
 
         self.angle = self.comp.update(integrate_gyro, acc_angle)
         #print("Angle", self.angle)
