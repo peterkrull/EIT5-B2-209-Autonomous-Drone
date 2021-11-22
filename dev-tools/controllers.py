@@ -63,6 +63,63 @@ class control:
 
             return self.y
 
+    class low_pass_bi():
+        def __init__(self,tau,init_val=0,debug_time=None, rollover_min = None, rollover_max = None):
+            """
+            First order discrete time low-pass filter (using bilinear transform)
+
+            Args:
+                tau (float) : Time constant of filter
+                init_val (float) : initial filter value
+            """
+            self.debug_time = debug_time
+            self.tau = tau
+            self.y = init_val
+            self.x = 0
+            self.prevtime = time.time()
+            self.min = rollover_min
+            self.max = rollover_max
+
+        def update(self,value):
+            """
+            Updates the filter with a new input value.
+
+            Args:
+                value (float) : input value
+
+            Returns (float) : filtered input
+            """
+
+            # Handle rollover on input (shift prev y-value)
+            if self.min and self.max:
+                if value-self.y < self.min:
+                    self.y -= self.max-self.min
+                elif value-self.y  > self.max:
+                    self.y += self.max-self.min
+
+            # Classic infinite impulse implementation
+            if not self.debug_time:
+                xtime = time.time()
+                T = (xtime-self.prevtime)
+                a = (2*self.tau)/T
+                self.y = (self.x + value -self.y*(1-a))/(1+a)
+                self.x = value
+                self.prevtime = xtime
+            else: # debug
+                T = self.debug_time
+                a = (2*self.tau)/T
+                self.y = (self.x + value -self.y*(1-a))/(1+a)
+                self.x = value
+            
+            # Handle rollover of output (constrain to limits)
+            if self.min and self.max:
+                if self.y < self.min:
+                    return self.y + (self.max-self.min)
+                elif self.y > self.max:
+                    return self.y - (self.max-self.min)
+
+            return self.y
+
     
     class cascade():
         def __init__(self,system,order,**kwargs):
@@ -343,3 +400,24 @@ class control:
             return max
         else:
             return value
+
+from matplotlib import pyplot as plt
+
+signal = [0 for i in range(10)]
+signal += [1 for i in range(100)]
+
+lp1 = control.low_pass(0.07,debug_time=1/360)
+lp2 = control.low_pass_bi(0.07,debug_time=1/360)
+
+xtime = []
+out1 = []
+out2 = []
+
+for t,x in enumerate(signal):
+    xtime.append(t/360)
+    out1.append(lp1.update(x))
+    out2.append(lp2.update(x))
+
+plt.plot(xtime,out1,xtime,out2)
+plt.grid()
+plt.show()
