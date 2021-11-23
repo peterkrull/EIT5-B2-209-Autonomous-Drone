@@ -2,7 +2,7 @@ from pitchRoll_estimator import pitchRoll_estimator
 from ComplimentaryThrust import thrust_estimator
 
 class state_estimator:
-    def __init__(self, init_pos, Kx = .34, Kz = 0.9):
+    def __init__(self, init_pos, vicon_udp, drone_data, Kx = .34, Kz = 0.9):
         """
         Initiates the state estimator based on an initial state
 
@@ -13,7 +13,7 @@ class state_estimator:
 
         self.init_pos = init_pos
         self.est_pos = init_pos
-        self.xy_estimator = pitchRoll_estimator(init_pos, Kx)
+        self.xy_estimator = pitchRoll_estimator(init_pos, vicon_udp, Kx)
         self.z_estimator = thrust_estimator(Kz,30)
         self.pos = init_pos
 
@@ -33,15 +33,11 @@ class state_estimator:
 
         #state estimation missing z
         self.est_pos['yaw'] = drone_data['stateEstimate.yaw']
-        xy = self.xy_estimator.update(gyro_data, acc_data,self.pos['yaw'],drone_data['time'])
+        xy = self.xy_estimator.update(vicon_available,vicon_data, gyro_data, acc_data, self.pos['yaw'], drone_data['time'])
         z  = self.z_estimator.update(vicon_available,vicon_data,drone_data)
         self.est_pos['x'] = xy['x']
         self.est_pos['y'] = xy['y']
         self.est_pos['z'] = z
-        
-        if vicon_available == 1:
-            #use vicon to acquire actual position to improve positioning of data.
-            pass
         
         return self.est_pos
 
