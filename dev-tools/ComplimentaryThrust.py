@@ -60,9 +60,9 @@ class baroZestimator:
         return baroZ_estimate
 
 class thrust_estimator:
-    def __init__(self,K,amount):
+    def __init__(self,k_vel,k_pos,amount):
         self.baro_est = baroZestimator(amount)
-        self.complementary = com.thrust(K)
+        self.complementary = com.thrust(k_vel, k_pos)
         self.started = False
 
     def calibrate(self,vicon_udp,barometer:float) -> bool:
@@ -87,5 +87,5 @@ class thrust_estimator:
         if drone_data:
             self.baro_est.baro = drone_data['baro.pressure']
         z_est = self.baro_est.estimate()
-        return self.complementary.update(z_est,drone_data['acc.z'],drone_data['time'])
+        return self.complementary.update(z_est,drone_data,vicon_data,vicon_available)
     

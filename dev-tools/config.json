@@ -27,10 +27,11 @@
     "drone_log" : {
         "gyro.x":     {"id" : "gyro_x",   "type" : "float"},
         "gyro.y":     {"id" : "gyro_y",   "type" : "float"},
-        "gyro.z":     {"id" : "gyro_z",   "type" : "float"},
         "acc.x":     {"id" : "acc_x",   "type" : "FP16"},
         "acc.y":     {"id" : "acc_y",   "type" : "FP16"},
         "acc.z":     {"id" : "acc_z",   "type" : "FP16"},
+        "stateEstimate.az":     {"id" : "stateEstimate_az",   "type" : "FP16"},
+        "stateEstimate.vz":     {"id" : "stateEstimate_vz",   "type" : "FP16"},
         "stateEstimate.yaw":     {"id" : "stateEstimate_yaw",   "type" : "FP16"},
         "baro.pressure":     {"id" : "baro_pressure",   "type" : "float"},
         "pm.vbat":     {"id" : "pm_vbat",   "type" : "FP16"}

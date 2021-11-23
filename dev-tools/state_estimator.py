@@ -27,7 +27,7 @@ class state_estimator:
             vicon_available (bool) True: vicon is available, False: vicon is not available
         """
 
-        gyro_data = {'x' : drone_data['gyro.x'], 'y' : drone_data['gyro.y'], 'z' : drone_data['gyro.z']}
+        gyro_data = {'x' : drone_data['gyro.x'], 'y' : drone_data['gyro.y']}#, 'z' : drone_data['gyro.z']}
         acc_data = {'x': drone_data['acc.x'], 'y': drone_data['acc.y'], 'z': drone_data['acc.z']}
 
         #state estimation missing z
