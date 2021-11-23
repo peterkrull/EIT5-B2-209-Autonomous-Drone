@@ -208,7 +208,7 @@ if __name__ == '__main__':
         filter_yaw = control.roll_avg(conf["yaw_filter"]["roll_avg"]["number"])
 
     elif conf["yaw_filter"]["type"] == "lowpass": # n-order lowpass filter
-        filter_yaw = control.cascade(control.low_pass,**conf["yaw_filter"]["lowpass"])
+        filter_yaw = control.cascade(control.low_pass_bi,**conf["yaw_filter"]["lowpass"])
 
     # Tells treads to keep running
     running = True
@@ -232,7 +232,8 @@ if __name__ == '__main__':
     state_est = state_estimator({'x':init_pos[2],'y':init_pos[3],'z':init_pos[4],'yaw':init_pos[6]})    
 
     # Calibrate barometric pressure
-    while state_est.z_estimator.calibrate(vicon_udp.getTimestampedData,drone_data['baro_pressure']): pass
+    while state_est.z_estimator.calibrate(vicon_udp.getTimestampedData,drone_data['baro.pressure']):
+        cf.send_setpoint(0,0,0,0)
 
     # Start program thread
     loader = Thread(target=thread_setpoint_loader2)

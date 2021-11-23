@@ -72,7 +72,7 @@ class thrust_estimator:
             self.started = True
         self.baro_est.vicon = vicon_udp()[3]
         self.baro_est.baro = barometer
-        time.sleep(0.05)
+        time.sleep(0.01)
         print(".",end="",flush=True)
         done_status = self.baro_est.takeAverage()
         if done_status:
