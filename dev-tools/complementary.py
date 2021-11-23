@@ -11,6 +11,9 @@ class complementary:
     def update(self,data_1,data_2):
         return data_1*self.k + data_2*(1-self.k)
 
+    def set_k(self,k):
+        self.k = k
+
 class pitchroll:
     def __init__(self,k,start_time = 0):
         self.comp = complementary(k)
@@ -53,19 +56,46 @@ class cascaded_complementary_filter_pitchRoll:
         return self.angle
 
 class thrust:
-    def __init__(self,k):
-        self.comp = complementary(k)
-        self.prev_acc = 0.0
+    def __init__(self,k_vel,k_pos):
+        self.k_vel = k_vel
+        self.comp_vel = complementary(k_vel)
+        self.comp_pos = complementary(k_pos)
+        self.prev_vel = 0.0
+        self.prev_pos = 0.0
         self.prev_time = 0.0
         self.thrust = 0.0
 
-    def update(self,baro,acc_z,time):
-        #Calculate integral of accelerometer data 
-        xtime = time
-        integrate_acc = acc_z*(xtime-self.prev_time)**2
-        self.prev_time = xtime
+    def update(self,baro,drone_data,vicon_data,vicon_avail):
+        #Calculate double integral of accelerometer data 
+        # xtime = time # Original code (May be incorrect)
+        # integrate_acc = acc_z*(xtime-self.prev_time)**2
+        # self.prev_time = xtime
         
-        self.thrust = self.comp.update((self.prev_acc + integrate_acc),baro)
-        self.prev_acc = self.thrust
+        # self.thrust = self.comp.update((self.prev_acc + integrate_acc),baro)
+        # self.prev_acc = self.thrust
 
-        return self.thrust
+        xtime = drone_data.get('time')     
+
+        # ! Only select one of the below
+        # ? Use on-board velocity estimator
+        self.prev_vel = drone_data.get('stateEstimate.vz') # Use on-board estimator
+
+        # ? Do velocity estimation using Vicon integration
+        # integrate_vel = drone_data.get('acc.z')*(xtime-self.prev_time)*9.82
+        # vel = (vicon_data[3]-self.prev_vicon_data[3])/(xtime-self.prev_time) # Estimate from vicon
+        # # 1st integration from acceleration to velocity (No complimentary!)
+        # if vicon_avail:
+        #     self.comp_vel.set_k(self.k_vel)
+        #     self.prev_vel = self.comp_vel.update((self.prev_vel + integrate_vel),vel)
+        # else:
+        #     self.comp_vel.set_k(1)
+        #     self.prev_vel = self.comp_vel.update((self.prev_vel + integrate_vel),0)
+        # ! Only select one of the above
+
+        # 2nd integration from velocity to position
+        delta_pos = self.prev_vel*(xtime-self.prev_time)
+        self.prev_pos = self.comp_pos.update((self.prev_pos + delta_pos),baro)
+
+        self.prev_time = xtime
+        self.prev_vicon_data = vicon_data
+        return self.prev_pos
