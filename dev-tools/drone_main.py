@@ -233,6 +233,7 @@ if __name__ == '__main__':
 
     # Calibrate barometric pressure
     while state_est.z_estimator.calibrate(vicon_udp.getTimestampedData,drone_data['baro.pressure']):
+        #Sends setpoints so the drone does not loose connection
         cf.send_setpoint(0,0,0,0)
 
     # Start program thread
