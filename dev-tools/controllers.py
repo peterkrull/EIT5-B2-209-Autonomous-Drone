@@ -401,23 +401,25 @@ class control:
         else:
             return value
 
-from matplotlib import pyplot as plt
+if __name__ == "__main__":
 
-signal = [0 for i in range(10)]
-signal += [1 for i in range(100)]
+    from matplotlib import pyplot as plt
 
-lp1 = control.low_pass(0.07,debug_time=1/360)
-lp2 = control.low_pass_bi(0.07,debug_time=1/360)
+    signal = [0 for i in range(10)]
+    signal += [1 for i in range(100)]
 
-xtime = []
-out1 = []
-out2 = []
+    lp1 = control.low_pass(0.07,debug_time=1/360)
+    lp2 = control.low_pass_bi(0.07,debug_time=1/360)
 
-for t,x in enumerate(signal):
-    xtime.append(t/360)
-    out1.append(lp1.update(x))
-    out2.append(lp2.update(x))
+    xtime = []
+    out1 = []
+    out2 = []
 
-plt.plot(xtime,out1,xtime,out2)
-plt.grid()
-plt.show()
+    for t,x in enumerate(signal):
+        xtime.append(t/360)
+        out1.append(lp1.update(x))
+        out2.append(lp2.update(x))
+
+    plt.plot(xtime,out1,xtime,out2)
+    plt.grid()
+    plt.show()

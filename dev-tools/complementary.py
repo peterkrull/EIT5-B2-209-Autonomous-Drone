@@ -65,7 +65,7 @@ class thrust:
         integrate_acc = acc_z*(xtime-self.prev_time)**2
         self.prev_time = xtime
         
-        self.thrust = self.comp.update(baro,(self.prev_acc + integrate_acc))
+        self.thrust = self.comp.update((self.prev_acc + integrate_acc),baro)
         self.prev_acc = self.thrust
 
         return self.thrust
