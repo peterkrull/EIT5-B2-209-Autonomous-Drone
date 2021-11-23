@@ -17,6 +17,11 @@ class baroZestimator:
         self.avg_len = avg_len
 
     def takeAverage(self):
+        """Ensures running that the initialized values as well as moving average is taken correctly
+
+        Returns:
+            bool: True if calibration is still in progress
+        """
 
         # Defind latest barometer measurement
         if self.baro:
@@ -32,8 +37,8 @@ class baroZestimator:
             if len(self.average) < self.avg_len and len(self.height) < self.avg_len:
                 self.init_avg = sum(self.average)/len(self.average)
                 self.init_height = sum(self.height)/len(self.height)
-                self.est_avg = sum(self.average)/len(self.average) + 1
-                self.est_height = sum(self.height)/len(self.height) + 1
+                self.est_avg = sum(self.average)/len(self.average) + 1 # to avoid div 0 error
+                self.est_height = sum(self.height)/len(self.height) + 1 # to avoid div 0 error
            
             # Regular rolling average
             if len(self.average) >= self.avg_len and len(self.height) >= self.avg_len:
@@ -47,6 +52,11 @@ class baroZestimator:
             return True
 
     def estimate(self):
+        """Estimates the z-height of the drone based on two previously known heights
+
+        Returns:
+            float: estimated height
+        """
         self.takeAverage()
         #print(f"init baro : {self.init_avg}, init height {self.init_height} : latest baro : {self.est_avg}, latest height {self.est_height}, baro meas: {self.latest_baro}")
         try:
@@ -60,12 +70,21 @@ class baroZestimator:
         return baroZ_estimate
 
 class thrust_estimator:
-    def __init__(self,K,amount):
+    def __init__(self,k_vel,k_pos,amount):
         self.baro_est = baroZestimator(amount)
-        self.complementary = com.thrust(K)
+        self.complementary = com.thrust(k_vel, k_pos)
         self.started = False
 
     def calibrate(self,vicon_udp,barometer:float) -> bool:
+        """Does the calibration of the initial point used for the z-estimation
+
+        Args:
+            vicon_udp (function): Function that can be called to get the actual-zheight
+            barometer (float): Value of barometric reading the given z-height
+
+        Returns:
+            bool: True if calibration is still in progress
+        """
         if not self.started:
             print("Calibrating barometer at ground level:")
             time.sleep(1)
@@ -82,10 +101,20 @@ class thrust_estimator:
             return done_status
 
     def update(self,vicon_available,vicon_data,drone_data):
+        """Update complimentary filter position estimation output
+
+        Args:
+            vicon_available (bool): Describes wether to use vicon data
+            vicon_data (list): Vicon Tracker UDP parameters
+            drone_data (dict): Logged data from sensors on-board the drone
+
+        Returns:
+            float: Best estimated z-height of drone
+        """
         if vicon_available:
             self.baro_est.vicon = vicon_data[3]
         if drone_data:
             self.baro_est.baro = drone_data['baro.pressure']
         z_est = self.baro_est.estimate()
-        return self.complementary.update(z_est,drone_data['acc.z'],drone_data['time'])
+        return self.complementary.update(z_est,drone_data,vicon_data,vicon_available)
     
