@@ -17,6 +17,7 @@ class pitchroll:
         self.prev_gyro = 0.0
         self.prev_time = start_time
         self.angle = 0.0
+        self.k = k
 
     def update(self,gyro,acc,acc_z,time):
         #Calculate delta angel
@@ -24,8 +25,8 @@ class pitchroll:
         integrate_gyro = (gyro*(180/math.pi))*(xtime-self.prev_time)
         self.prev_time = xtime
         
-        #self.angle = (180/math.pi)*(1-self.k)*math.arctan(acc/acc_z)+self.k*(self.prev_gyro+integrate_gyro)
-        self.angle = self.comp.update((self.prev_gyro+integrate_gyro),math.atan(acc/acc_z)*(180/math.pi))
+        self.angle = (1-self.k)*(180/math.pi)*math.atan(acc/acc_z)+self.k*(self.prev_gyro+integrate_gyro)
+        #self.angle = self.comp.update((self.prev_gyro+integrate_gyro),math.atan(acc/acc_z)*(180/math.pi))
         self.prev_gyro = self.angle
         return self.angle
 
