@@ -1,7 +1,7 @@
 clear
 set(findall(gcf,'-property','FontSize'),'FontSize',13)
 set(findall(gcf,'-property','Font'),'Font','Roman')
-exportFigures = true;
+exportFigures = false;
 
 areaWidth = 2.05; %Width of the flight area
 areaHeight = 3.45; %Height of the flight area
@@ -162,6 +162,31 @@ if exportFigures == true
    exportgraphics(gcf,'courseToFollowAbove.pdf','ContentType','vector')
 end
 
+figure(3)
+%draws the line segments in different colors
+C = {'r'; 'g'; 'b';'c';'m';'y';'k'}; 
+plot(totalCourse(1:ppRoute,1),totalCourse(1:ppRoute,2))
+hold on 
+for i = 2:7
+   x = totalCourse((i-1)*ppRoute:ppRoute*i,1);
+   y = totalCourse((i-1)*ppRoute:ppRoute*i,2);
+   plot(x, y) 
+end
+hold off
+axis equal
+legend('line segment 1','line segment 2','line segment 3','line segment 4','line segment 5','line segment 6','line segment 7')
+grid on 
+
+xlabel('x-axis [m]');
+ylabel('y-axis [m]');
+x0=0;
+y0=0;
+plotwidth=600;
+height=300;
+set(gcf,'position',[x0,y0,plotwidth,height])
+
+xlim([-1.5 2.5]);
+ylim([-1 2]);
 
 %Writes route description to a csv-file
 writematrix(totalCourse,'courseDescriptionHD.csv');

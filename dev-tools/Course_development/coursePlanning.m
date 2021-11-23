@@ -1,21 +1,21 @@
 clear
 courseHD = readmatrix('courseDescriptionHD.csv');
 
-xColumn = 1;         printX        = true;
-yColumn = 2;         printY        = true;
-zColumn = 3;         printZ        = true;
-yawColumn = 4;       printYaw      = true;
-holdTimeColumn = 5;  printHoldTime = true;
-checkpointColumn = 6;printCheckPoint = false;
-viconColumn = 7;     printVicon    = true;
+xColumn = 1;         outputX = true;    printX          = true;
+yColumn = 2;         outputY = true;    printY          = true;
+zColumn = 3;         outputZ = true;    printZ          = true;
+yawColumn = 4;       outputYaw = true;  printYaw        = true;
+holdTimeColumn = 5;  outputHT = true;   printHoldTime   = true;
+checkpointColumn = 6;outputCP = false;  printCheckPoint = false;
+viconColumn = 7;     outputVC = true;   printVicon      = true;
 
-printMatrix = [xColumn printX];
-printMatrix = [printMatrix; yColumn printY];
-printMatrix = [printMatrix; zColumn printZ];
-printMatrix = [printMatrix; yawColumn printYaw];
-printMatrix = [printMatrix; holdTimeColumn printHoldTime];
-printMatrix = [printMatrix; checkpointColumn printCheckPoint];
-printMatrix = [printMatrix; viconColumn printVicon];
+printMatrix = [xColumn outputX printX];
+printMatrix = [printMatrix; yColumn outputY printY];
+printMatrix = [printMatrix; zColumn outputZ printZ];
+printMatrix = [printMatrix; yawColumn outputYaw printYaw];
+printMatrix = [printMatrix; holdTimeColumn outputHT printHoldTime];
+printMatrix = [printMatrix; checkpointColumn outputCP printCheckPoint];
+printMatrix = [printMatrix; viconColumn outputVC printVicon];
 
 pfRadius = .5; %Radius of the pathfollowing algorithme in meters
 
@@ -73,8 +73,12 @@ end
 %Sets columns not chosen to be output to 0
 toOutput(:,1) = newCourse(:,1);
 for i = 2:size(printMatrix,1)
-   if printMatrix(i,2) == true
-      toOutput = [toOutput newCourse(:,i)]; 
+    if printMatrix(i,2) == true
+        if printMatrix(i,3) == true 
+            toOutput = [toOutput newCourse(:,i)]; 
+        else
+            toOutput = [toOutput zeros(i,1)]; 
+        end
    end
 end
 
