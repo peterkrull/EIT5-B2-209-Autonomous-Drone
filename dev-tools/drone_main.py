@@ -1,18 +1,15 @@
 import json
-from json.decoder import JSONDecodeError
 import time
-
+from json.decoder import JSONDecodeError
 from threading import Thread
 from math import pi,cos,sin
-from state_estimator import state_estimator
 
+from state_estimator import state_estimator
 from controllers import control
 from data_logger import logger
 from easyflie import easyflie
 from raspberry_socketreader import viconUDP
 from path_follow import PathFollow
-from ComplimentaryThrust import baroZestimator
-#from path_visualizer import path_visualizer
 
 # Library for data logging
 from cflib.crazyflie.log import LogConfig
@@ -27,6 +24,7 @@ log_cal = True
 log_lim = True
 log_drone = True
 
+# from path_visualizer import path_visualizer
 # # Outcommented since Pi wont have display out
 # # Thread to allow for visualizing drone flight
 # def thread_visualizer():
