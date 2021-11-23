@@ -75,7 +75,7 @@ class pitchRoll_estimator:
             deltaTime = (vicon_data[0]-self.prev_vicon_data[0])
             #Differentiates position to acquire velocity
             self.body_vel['x'] = (vicon_data[1]-self.prev_vicon_data[1])/deltaTime
-            self.body_vel['y'] = (vicon_data[2]-self.prev_vicon_data[2])*deltaTime
+            self.body_vel['y'] = (vicon_data[2]-self.prev_vicon_data[2])/deltaTime
             #Updates position to be vicons position
             self.pos['x'] = vicon_data[1]
             self.pos['y'] = vicon_data[2]
