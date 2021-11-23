@@ -1,9 +1,10 @@
 from complementary import complementary, pitchroll
 from math import sin, cos, pi
 import time 
+from termcolor import colored
 
 class pitchRoll_estimator:
-    def __init__(self,pos,vicon_data,k = .34):
+    def __init__(self,pos,vicon_data,Kx = .34, Ky = .34):
         """
         Initializes pitchRoll_estimator based on an initial position
 
@@ -15,13 +16,17 @@ class pitchRoll_estimator:
         self.start_time = 0
         self.prev_update = self.start_time
 
-        pitch_filter = pitchroll(k,start_time=self.start_time)
-        roll_filter = pitchroll(k,start_time=self.start_time)
+        pitch_filter = pitchroll(Kx,start_time=self.start_time)
+        roll_filter = pitchroll(Ky,start_time=self.start_time)
 
         self.filters = {'pitch':pitch_filter, 'roll':roll_filter}
         self.pos = {'x':pos['x'], 'y':pos['y']}
         self.body_vel = {'x':0, 'y':0}
         self.prev_vicon_data = vicon_data
+
+        self.plot_acc = []
+        self.plot_deg = []
+        self.plot_time = []
 
     def __update_bodyAcc(self, gyro,acc,acc_z, t,angle):
         """
@@ -38,6 +43,10 @@ class pitchRoll_estimator:
         #Currently estimates acceleration using approximation described in report, 
         #if upgrade needed use thrust for more precise calculation
         est_acc = sin(est_angle*pi/180) * self.g /drone_mass
+    
+        self.plot_acc.append(est_acc)
+        self.plot_deg.append(est_angle)
+
         return est_acc
 
     def update(self,vicon_available, vicon_data, gyro,acc,yaw,t):
@@ -50,32 +59,34 @@ class pitchRoll_estimator:
             yaw (float) : unit [degrees] the current yaw of the drone
             t (float) : unit [s] unix time
         """
-        
+        self.vicon_available = vicon_available
         #Updates position based on either vicon or onboard sensors depending on availability
-        if vicon_available == False:
-            #Finds acceleration in the drones body coordinates
-            pitch_acc = self.__update_bodyAcc(gyro['x'],acc['x'],acc['z'], t, 'pitch')
-            roll_acc = self.__update_bodyAcc(gyro['y'],acc['y'],acc['z'], t, 'roll')
+        
+        #Finds acceleration in the drones body coordinates
+        pitch_acc = self.__update_bodyAcc(gyro['x'],acc['x'],acc['z'], t, 'pitch')
+        roll_acc = self.__update_bodyAcc(gyro['y'],acc['y'],acc['z'], t, 'roll')
 
-            #Transforms body acceleration to inertial acceleration using rot-matrix
-            x_acc = cos(yaw*pi/180)*pitch_acc-sin(yaw*pi/180)*roll_acc
-            y_acc = sin(yaw*pi/180)*pitch_acc+cos(yaw*pi/180)*roll_acc
+        #Transforms body acceleration to inertial acceleration using rot-matrix
+        x_acc = -1*(cos(yaw*pi/180)*pitch_acc-sin(yaw*pi/180)*roll_acc)
+        y_acc = sin(yaw*pi/180)*pitch_acc+cos(yaw*pi/180)*roll_acc
 
-            #Integrates acceleration to acquire velocity
-            #print("delta tid:", t-self.prev_update)
-            self.body_vel['x'] += x_acc*(t-self.prev_update)
-            self.body_vel['y'] += y_acc*(t-self.prev_update)
+        #Integrates acceleration to acquire velocity
+        #print("delta tid:", t-self.prev_update)
+        self.body_vel['x'] += x_acc*(t-self.prev_update)
+        self.body_vel['y'] += y_acc*(t-self.prev_update)
 
-            #Multiplys bodyvelocity to acquire distance travelled and add this to position
-            body_posChangex = self.body_vel['x']*(t-self.prev_update)*1000
-            body_posChangey = self.body_vel['y']*(t-self.prev_update)*1000
-            self.pos['x'] += body_posChangex
-            self.pos['y'] += body_posChangey
-        else:
+        #Multiplys bodyvelocity to acquire distance travelled and add this to position
+        body_posChangex = self.body_vel['x']*(t-self.prev_update)*1000
+        body_posChangey = self.body_vel['y']*(t-self.prev_update)*1000
+        self.pos['x'] += body_posChangex
+        self.pos['y'] += body_posChangey
+        
+        if vicon_available == 1:
             deltaTime = (vicon_data[0]-self.prev_vicon_data[0])
             #Differentiates position to acquire velocity
-            self.body_vel['x'] = (vicon_data[1]-self.prev_vicon_data[1])/deltaTime
-            self.body_vel['y'] = (vicon_data[2]-self.prev_vicon_data[2])/deltaTime
+            self.body_vel['x'] = (vicon_data[1]-self.prev_vicon_data[1])/deltaTime/1000
+            self.body_vel['y'] = (vicon_data[2]-self.prev_vicon_data[2])/deltaTime/1000
+
             #Updates position to be vicons position
             self.pos['x'] = vicon_data[1]
             self.pos['y'] = vicon_data[2]
