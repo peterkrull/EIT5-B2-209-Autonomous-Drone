@@ -65,21 +65,25 @@ class thrust:
         self.prev_pos = 0.0
         self.prev_time = 0.0
         self.thrust = 0.0
+        self.baro_lp = None
 
     def update(self,baro,drone_data,vicon_data,vicon_avail):
-        #Calculate double integral of accelerometer data 
-        # xtime = time # Original code (May be incorrect)
-        # integrate_acc = acc_z*(xtime-self.prev_time)**2
-        # self.prev_time = xtime
-        
-        # self.thrust = self.comp.update((self.prev_acc + integrate_acc),baro)
-        # self.prev_acc = self.thrust
 
-        xtime = drone_data.get('time')     
+        # Low-pass filter barometric data
+        if not self.baro_lp:
+            self.baro_lp = control.cascade(control.low_pass_bi,4,tau=0.02,init_val=baro)
+
+        # Retreive time of logged data
+        xtime = drone_data.get('time') 
 
         # ! Only select one of the below
-        # ? Use on-board velocity estimator
-        self.prev_vel = drone_data.get('stateEstimate.vz') # Use on-board estimator
+        # ? Combined best estimate
+        drone_vel = drone_data.get('stateEstimate.vz')*1000 # Use on-board estimator to prevent wind-up
+        delta_speed = drone_data['stateEstimate_az']*9820*(xtime-self.prev_time)
+        self.prev_vel = self.comp_vel.update((self.prev_vel + delta_speed),drone_vel)
+
+        # ? Use on-board velocity estimator only
+        # self.prev_vel = drone_data.get('stateEstimate.vz') # Use on-board estimator
 
         # ? Do velocity estimation using Vicon integration
         # integrate_vel = drone_data.get('acc.z')*(xtime-self.prev_time)*9.82
@@ -91,12 +95,13 @@ class thrust:
         # else:
         #     self.comp_vel.set_k(1)
         #     self.prev_vel = self.comp_vel.update((self.prev_vel + integrate_vel),0)
+        # self.prev_vicon_data = vicon_data
         # ! Only select one of the above
 
-        # 2nd integration from velocity to position
+        # 2nd integration from velocity to position (anti wind-up by barometer)
         delta_pos = self.prev_vel*(xtime-self.prev_time)
         self.prev_pos = self.comp_pos.update((self.prev_pos + delta_pos),baro)
 
         self.prev_time = xtime
-        self.prev_vicon_data = vicon_data
+
         return self.prev_pos

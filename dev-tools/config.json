@@ -8,8 +8,8 @@
     },
     "pid_vals" : {
         "thrust" :  {"Kp" : 30e3,   "Ki" : 0,   "Kd" : 17e3},
-        "pitch" :   {"Kp" : 40,     "Ki" : 0,   "Kd" : 32},
-        "roll" :    {"Kp" : 40,     "Ki" : 0,   "Kd" : 32},
+        "pitch" :   {"Kp" : 40,     "Ki" : 0,   "Kd" : 26},
+        "roll" :    {"Kp" : 40,     "Ki" : 0,   "Kd" : 26},
         "yaw" :     {"Kp" : 15,     "Ki" : 0,   "Kd" : 1.5,
                     "rollover_min" : -180,"rollover_max" : 180}
     },
@@ -40,7 +40,7 @@
     "yaw_filter" : {
         "type" : "lowpass",
         "roll_avg" : {"number" : 200},
-        "lowpass" : {"tau" : 0.021 , "order" : 3}
-
+        "lowpass" : {"tau" : 0.021 , "order" : 3,
+            "rollover_min" : -3.141592,"rollover_max" : 3.141592}
     }
 }
