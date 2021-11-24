@@ -3,3 +3,13 @@ dev-tools/leadControllerDebug.py
 dev-tools/__pycache__/controllers.cpython-39.pyc
 dev-tools/Course_development/courseDefinition.asv
 *.pyc
+dev-tools/__pycache__/ComplimentaryThrust.cpython-39.pyc
+dev-tools/__pycache__/complementary.cpython-39.pyc
+dev-tools/__pycache__/pitchRoll_estimator.cpython-39.pyc
+dev-tools/__pycache__/state_estimator.cpython-39.pyc
+dev-tools/cache/C587C8AA.json
+dev-tools/cache/E03272BC.json
+dev-tools/__pycache__/pitchRoll_estimator.cpython-39.pyc
+dev-tools/__pycache__/state_estimator.cpython-39.pyc
+dev-tools/__pycache__/ComplimentaryThrust.cpython-39.pyc
+dev-tools/__pycache__/complementary.cpython-39.pyc
