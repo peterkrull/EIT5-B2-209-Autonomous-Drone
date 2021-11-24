@@ -25,8 +25,8 @@
         "z" : {"min":0,     "max":2500}
     },
     "drone_log" : {
-        "gyro.x":     {"id" : "gyro_x",   "type" : "float"},
-        "gyro.y":     {"id" : "gyro_y",   "type" : "float"},
+        "gyro.x":     {"id" : "gyro_x",   "type" : "FP16"},
+        "gyro.y":     {"id" : "gyro_y",   "type" : "FP16"},
         "acc.x":     {"id" : "acc_x",   "type" : "FP16"},
         "acc.y":     {"id" : "acc_y",   "type" : "FP16"},
         "acc.z":     {"id" : "acc_z",   "type" : "FP16"},
@@ -34,8 +34,8 @@
         "stateEstimate.vz":     {"id" : "stateEstimate_vz",   "type" : "FP16"},
         "stateEstimate.yaw":     {"id" : "stateEstimate_yaw",   "type" : "FP16"},
         "baro.pressure":     {"id" : "baro_pressure",   "type" : "float"},
-        "pm.vbat":     {"id" : "pm_vbat",   "type" : "FP16"}
-
+        "motion.deltaX":     {"id" : "motion_deltaX",   "type" : "FP16"},
+        "motion.deltaZ":     {"id" : "motion_deltaZ",   "type" : "FP16"}
     },
     "yaw_filter" : {
         "type" : "lowpass",
