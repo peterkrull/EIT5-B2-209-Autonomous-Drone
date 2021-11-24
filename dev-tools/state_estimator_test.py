@@ -6,7 +6,9 @@ import time
 import random
 
 #file = 'C:\\Users\\bosto\\Documents\\GitHub\\EIT5-B2-209-Autonomous-Drone\\test-results\\test-of-barometer\\1637152127_baro_meas.csv'
-file = 'C:\\Users\\bosto\\Documents\\GitHub\\EIT5-B2-209-Autonomous-Drone\\test-results\\onboard-sensor-drift\\1637063677_test_flyvning.csv'
+#file = 'C:\\Users\\bosto\\Documents\\GitHub\\EIT5-B2-209-Autonomous-Drone\\test-results\\onboard-sensor-drift\\1637063677_test_flyvning.csv'
+file = 'C:\\Users\\bosto\\Documents\\GitHub\\EIT5-B2-209-Autonomous-Drone\\test-results\\onboard-sensor-drift\\1637674848_fly_track_with_estimator.csv'
+
 with open(file, newline='') as csvFile:
     dataReader = csv.DictReader(csvFile, delimiter=",")
     testDataHeader = dataReader.fieldnames
@@ -22,12 +24,12 @@ state_est = state_estimator(pos, viconInit, Kx = .1, Ky =.1)
 
 gx_index = testDataHeader.index("gyro_x")
 gy_index = testDataHeader.index("gyro_y")
-gz_index = testDataHeader.index("gyro_z")
 ax_index = testDataHeader.index("acc_x")
 ay_index = testDataHeader.index("acc_y")
 az_index = testDataHeader.index("acc_z")
 seYaw_index = testDataHeader.index("stateEstimate_yaw")
 baro_index = testDataHeader.index("baro_pressure")
+se_vc_index = testDataHeader.index("stateEstimate_vz")
 
 est_pos = []
 time_axis = []
@@ -45,7 +47,7 @@ for i in testData:
             print("switch time:", i[0])
 
     #print(vicon_pos)
-    drone_data = {'gyro.x':i[gx_index], 'gyro.y':i[gy_index], 'gyro.z':i[gz_index],'acc.x':i[ax_index], 'acc.y':i[ay_index], 'acc.z':i[az_index], 'stateEstimate.yaw':i[seYaw_index],'time':i[0], 'baro.pressure':i[baro_index]} 
+    drone_data = {'gyro.x':i[gx_index], 'gyro.y':i[gy_index], 'acc.x':i[ax_index], 'acc.y':i[ay_index], 'acc.z':i[az_index], 'stateEstimate.yaw':i[seYaw_index],'time':i[0], 'baro.pressure':i[baro_index], 'stateEstimate_vz':i[se_vc_index]} 
 
     a = state_est.update(vicon_pos,drone_data,vicon_available)
     
