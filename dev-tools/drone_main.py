@@ -261,8 +261,14 @@ if __name__ == '__main__':
         try: time.sleep(0.2)
         except KeyboardInterrupt:
             print(">>>> Sending stop command to Crazyflie <<<<")
-            cf.send_stop_setpoint()
             running = False
+
+            for i in range(5):
+                try: 
+                    time.sleep(0.05)
+                    cf.send_stop_setpoint()
+                except: pass
+            
             if log : vicon_log.save_file()
             exit("Exiting program")
         except JSONDecodeError: # Does not work, for some reason
