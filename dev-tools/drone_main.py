@@ -224,6 +224,10 @@ if __name__ == '__main__':
     time.sleep(1)
     cf.send_start_setpoint()
     print("Connection established")
+    time.sleep(.4)
+    cf.cf.param.set_value("motion.disable", '1')
+    print("Flowdeck disabled for onboard kalman filtering")
+    time.sleep(.5)
 
     # State estimator for panic-mode
     init_pos = vicon_udp.getTimestampedData()
