@@ -47,7 +47,7 @@ for i in testData:
             print("switch time:", i[0])
 
     #print(vicon_pos)
-    drone_data = {'gyro.x':i[gx_index], 'gyro.y':i[gy_index], 'acc.x':i[ax_index], 'acc.y':i[ay_index], 'acc.z':i[az_index], 'stateEstimate.yaw':i[seYaw_index],'time':i[0], 'baro.pressure':i[baro_index], 'stateEstimate_vz':i[se_vc_index]} 
+    drone_data = {'gyro.x':i[gx_index], 'gyro.y':i[gy_index], 'acc.x':i[ax_index], 'acc.y':i[ay_index], 'acc.z':i[az_index], 'stateEstimate.yaw':i[seYaw_index],'time':i[0], 'baro.pressure':i[baro_index], 'stateEstimate.vz':i[se_vc_index]} 
 
     a = state_est.update(vicon_pos,drone_data,vicon_available)
     
