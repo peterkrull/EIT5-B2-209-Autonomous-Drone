@@ -23,6 +23,7 @@ log_sp = True
 log_cal = True
 log_lim = True
 log_drone = True
+log_estimate = True
 
 # from path_visualizer import path_visualizer
 # # Outcommented since Pi wont have display out
@@ -81,6 +82,7 @@ def thread_main_loop():
 
     # Add column title to log file
     if log : col_titles = ['time','x_pos','y_pos','z_pos','x_rot','y_rot','z_rot','delta_time','z_filtered']      # LOG CLUSTER 1
+    if log and log_estimate : col_titles += ['x_pos_est','y_pos_est','z_pos_est','z_rot_est']
     if log and log_error : col_titles += ['x_error','y_error','z_error','yaw_error']                              # LOG CLUSTER 2
     if log and log_sp : col_titles += ['x_setpoint','y_setpoint','z_setpoint','yaw_setpoint', 'vicon_available']  # LOG CLUSTER 3
     if log and log_cal : col_titles += ['thrust_cal','pitch_cal','roll_cal','yaw_cal']                            # LOG CLUSTER 4
@@ -129,6 +131,8 @@ def thread_main_loop():
         # Apply filter to temporary z-rotation value
         z_rot_filtered = filter_yaw.update(position['yaw'])
         if log : log_data += [z_rot_filtered] # LOG CLUSTER 1 
+
+        if log and log_estimate: log_data += [estimated_position['x'],estimated_position['y'],estimated_position['z'],estimated_position['yaw']]
 
         # Allowing for yaw, calculating errors in drones bodyframe
         x_error_drone =  x_error_room * cos(z_rot_filtered) + y_error_room * sin(z_rot_filtered)
