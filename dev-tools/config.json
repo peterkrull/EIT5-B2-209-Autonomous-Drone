@@ -40,7 +40,7 @@
     "yaw_filter" : {
         "type" : "lowpass",
         "roll_avg" : {"number" : 200},
-        "lowpass" : {"tau" : 0.021 , "order" : 3}
-
+        "lowpass" : {"tau" : 0.021 , "order" : 3,
+            "rollover_min" : -3.141592,"rollover_max" : 3.141592}
     }
 }
