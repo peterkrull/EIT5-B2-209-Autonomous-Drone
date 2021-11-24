@@ -45,7 +45,7 @@ class PathFollow:
                 #self.timeStamped = True
                 #clockReachedDest = time.monotonic()
             
-            #if(time.monotonic() - clockReachedDest +0.0001 > self.path[self.count][4]):
+            #if(time.monotonic() - clockReachedDest >= self.path[self.count][4]):
                 #self.timeStamped = False
                 self.count +=1
 
