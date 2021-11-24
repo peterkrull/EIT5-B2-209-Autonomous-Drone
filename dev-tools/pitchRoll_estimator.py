@@ -1,7 +1,7 @@
 from complementary import complementary, pitchroll
 from math import sin, cos, pi
 import time 
-from termcolor import colored
+#from termcolor import colored
 
 class pitchRoll_estimator:
     def __init__(self,pos,vicon_data,Kx = .34, Ky = .34):
