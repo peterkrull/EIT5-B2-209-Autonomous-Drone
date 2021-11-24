@@ -4,14 +4,12 @@ import time
 class PathFollow:
     def __init__(self, radiusUpdate, pathFileLocation) -> None:
         """
-        Making path object
+        Making pathFolow object
 
         Args:
             radius update (int)     : Radius to point before heading to next point
             patFileLocation (str)   : Location of path file
         """
-
-
         self.radiusUpdate = radiusUpdate    #Distance where next ref is taken
         self.path = 0                       #The Path. 
         self.count = 0                      #The step the drone heading for in at in path
@@ -47,7 +45,7 @@ class PathFollow:
                 #self.timeStamped = True
                 #clockReachedDest = time.monotonic()
             
-            #if(time.monotonic() - clockReachedDest > self.path[self.count][4]):
+            #if(time.monotonic() - clockReachedDest +0.0001 > self.path[self.count][4]):
                 #self.timeStamped = False
                 self.count +=1
 
