@@ -35,7 +35,7 @@
         "stateEstimate.yaw":     {"id" : "stateEstimate_yaw",   "type" : "FP16"},
         "baro.pressure":     {"id" : "baro_pressure",   "type" : "float"},
         "motion.deltaX":     {"id" : "motion_deltaX",   "type" : "FP16"},
-        "motion.deltaZ":     {"id" : "motion_deltaZ",   "type" : "FP16"}
+        "motion.deltaY":     {"id" : "motion_deltaY",   "type" : "FP16"}
     },
     "yaw_filter" : {
         "type" : "lowpass",
