@@ -94,9 +94,14 @@ class control:
             if self.min and self.max:
                 if value-self.y < self.min:
                     self.y -= self.max-self.min
-                    self.x -= self.max-self.min
+            
                 elif value-self.y  > self.max:
                     self.y += self.max-self.min
+            
+                if value-self.x < self.min:
+                    self.x -= self.max-self.min
+
+                if value-self.x > self.max:
                     self.x += self.max-self.min
 
             # Classic biliniar filter
