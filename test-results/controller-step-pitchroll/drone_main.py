@@ -60,7 +60,6 @@ def thread_main_loop():
         x_error = (sp.get('x')-vicon_data[1])/1000
         y_error = (sp.get('y')-vicon_data[2])/1000
         z_error = (sp.get('z')-vicon_data[3])/1000
-        #yaw_error = -(sp.get('yaw')-(vicon_data[6]*(180/pi))) # Fall back to this one
         yaw_error = sp.get('yaw')+(vicon_data[6]*(180/pi)) # Try this configuration
         if log and log_error : log_data += [x_error,y_error,z_error,yaw_error] # LOG CLUSTER 2
         if log and log_sp : log_data += [sp.get('x')/1000,sp.get('y')/1000,sp.get('z')/1000,sp.get('yaw')*(180/pi)] # LOG CLUSTER 3
@@ -128,11 +127,6 @@ if __name__ == '__main__':
     pid_pitch = control.PID(35,0,21.8)
     pid_roll = control.PID(35,0,21.8)
     pid_yaw = control.PID(15,0,1.5)
-
-    # # Setup lead-lag controllers
-    # lead_thrust = control.lead_lag_comp(a=0.15,b=0.85)
-    # lead_pitch = control.lead_lag_comp(a=0,b=1)
-    # lead_roll = control.lead_lag_comp(a=0,b=1)
 
     # Tells treads to keep running
     running = True
