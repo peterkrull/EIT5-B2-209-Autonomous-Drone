@@ -27,8 +27,9 @@ class pitchRoll_estimator:
 
         self.flowdeck = flowdeck
         if self.flowdeck == True:
-            xb_filter = complementary(.8)
-            yb_filter = complementary(.8)
+            print('complementary')
+            xb_filter = complementary(.95)
+            yb_filter = complementary(.95)
             self.vel_filters = {'xb':xb_filter, 'yb': yb_filter}
 
         self.pos = {'x':pos['x'], 'y':pos['y']}
@@ -61,7 +62,7 @@ class pitchRoll_estimator:
 
         return est_acc
     
-    def __flow_to_ms(self, drone_data,direction):
+    def __flow_to_ms(self, drone_data,direction,height, angle_rate):
         """
         Calculates the velocity of the drone based on the flow deck data
 
@@ -70,11 +71,18 @@ class pitchRoll_estimator:
             direction (str) the direction in which the velocity should be calculated ('x' or 'y')
         """
         #don't know how to convert data from the flow deck yet
-        #Here is the answer
+        #Here is the answer, look at equation 10
         #https://fenix.tecnico.ulisboa.pt/downloadFile/1970719973965869/Resumo%20Alargado.pdf
-        pass
+        dictEntry = 'motion.delta' + direction.upper()
 
-    def update(self,vicon_available, vicon_data, drone_data):
+        k_of = 0.13
+        to_return = -height/1000 * k_of*drone_data[dictEntry] + height/1000*angle_rate
+        
+        return to_return
+
+
+
+    def update(self,vicon_available, vicon_data, drone_data,z):
         """
         Updates the pitchRoll_estimator with coordinates in the inertial frame
 
@@ -86,7 +94,7 @@ class pitchRoll_estimator:
         self.vicon_available = vicon_available
 
         if self.flowdeck == True:
-            if 'motion_deltaX' not in drone_data or 'motion_deltaY' not in drone_data:
+            if 'motion.deltaX' not in drone_data or 'motion.deltaY' not in drone_data:
                 print("drone_data does not contain flow deck data")
                 self.flowdeck = False
 
@@ -113,25 +121,28 @@ class pitchRoll_estimator:
         moment_vel_y = roll_acc*(t-self.prev_update)
 
         if self.flowdeck == True:
-            flow_velx = self.__flow_to_ms(drone_data,'x')
-            flow_vely = self.__flow_to_ms(drone_data,'y')
-
+            flow_velx = self.__flow_to_ms(drone_data,'x',z,gyro['x'])
+            flow_vely = self.__flow_to_ms(drone_data,'y',z,gyro['y'])
             #self.body_vel['x'] += self.vel_filters['xb'].update(flow_velx, moment_vel_x) 
-            moment_vel_x = self.vel_filters['xb'].update(flow_velx, moment_vel_x)
-            moment_vel_y = self.vel_filters['yb'].update(flow_vely, moment_vel_y)  
+            self.body_vel['x'] = self.vel_filters['xb'].update(flow_velx, self.body_vel['x']+moment_vel_x)
+            self.body_vel['y'] = self.vel_filters['yb'].update(flow_vely, self.body_vel['y']+moment_vel_y)  
+        else: 
+            self.body_vel['x'] += moment_vel_x
+            self.body_vel['y'] += moment_vel_y
 
-        self.body_vel['x'] += moment_vel_x
-        self.body_vel['y'] += moment_vel_y
 
-
-        self.inertial_vel['x'] = cos(yaw*pi/180)*pitch_acc - sin(yaw*pi/180)*roll_acc
-        self.inertial_vel['y'] = sin(yaw*pi/180)*pitch_acc + sin(yaw*pi/180)*roll_acc
+        #self.inertial_vel['x'] = cos(yaw*pi/180)*pitch_acc - sin(yaw*pi/180)*roll_acc
+        #self.inertial_vel['y'] = sin(yaw*pi/180)*pitch_acc + sin(yaw*pi/180)*roll_acc
 
         #Multiplys bodyvelocity to acquire distance travelled and add this to position
-        body_posChangex = self.inertial_vel['x']*(t-self.prev_update)*1000
-        body_posChangey = self.inertial_vel['y']*(t-self.prev_update)*1000
-        self.pos['x'] += body_posChangex
-        self.pos['y'] += body_posChangey
+        body_posChangex = self.body_vel['x']*(t-self.prev_update)*1000
+        body_posChangey = self.body_vel['y']*(t-self.prev_update)*1000
+        
+        inertial_posChangex = cos(yaw*pi/180)*body_posChangex-sin(yaw*pi/180)*body_posChangey
+        inertial_posChangey = sin(yaw*pi/180)*body_posChangex+cos(yaw*pi/180)*body_posChangey
+
+        self.pos['x'] += inertial_posChangex
+        self.pos['y'] += inertial_posChangey
         
         if vicon_available == 1:
             deltaTime = (vicon_data[0]-self.prev_vicon_data[0])
