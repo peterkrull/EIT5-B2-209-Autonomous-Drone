@@ -23,7 +23,7 @@ firstSetPoint = [startPoint(1)-(areaWidth-courseWidth) startPoint(2) courseStdHe
 %Generates a number of points from the start point to the first set point
 courseToFirstSetPoint = [linspace(startPoint(1),firstSetPoint(1),ppRoute); linspace(startPoint(2),firstSetPoint(2),ppRoute);linspace(startPoint(3),firstSetPoint(3),ppRoute)]';
 %Yaw description
-yaw1 = 180*ones(ppRoute,1);
+yaw1 = 270*ones(ppRoute,1);
 %Adds checkpoints
 checkPoints = zeros(ppRoute,1);
 checkPoints(1) = 1;
