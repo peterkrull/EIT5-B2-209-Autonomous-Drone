@@ -94,10 +94,12 @@ class control:
             if self.min and self.max:
                 if value-self.y < self.min:
                     self.y -= self.max-self.min
+                    self.x -= self.max-self.min
                 elif value-self.y  > self.max:
                     self.y += self.max-self.min
+                    self.x += self.max-self.min
 
-            # Classic infinite impulse implementation
+            # Classic biliniar filter
             if not self.debug_time:
                 xtime = time.time()
                 T = (xtime-self.prevtime)
