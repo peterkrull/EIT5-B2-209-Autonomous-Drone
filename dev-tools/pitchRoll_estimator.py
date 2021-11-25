@@ -70,6 +70,8 @@ class pitchRoll_estimator:
             direction (str) the direction in which the velocity should be calculated ('x' or 'y')
         """
         #don't know how to convert data from the flow deck yet
+        #Here is the answer
+        #https://fenix.tecnico.ulisboa.pt/downloadFile/1970719973965869/Resumo%20Alargado.pdf
         pass
 
     def update(self,vicon_available, vicon_data, drone_data):
