@@ -33,7 +33,7 @@
         "stateEstimate.az":     {"id" : "stateEstimate_az",   "type" : "FP16"},
         "stateEstimate.vz":     {"id" : "stateEstimate_vz",   "type" : "FP16"},
         "stateEstimate.yaw":     {"id" : "stateEstimate_yaw",   "type" : "FP16"},
-        "baro.pressure":     {"id" : "baro_pressure",   "type" : "float"},
+        "range.zrange" :     {"id" : "range_zrange",    "type" : "FP16"},
         "motion.deltaX":     {"id" : "motion_deltaX",   "type" : "FP16"},
         "motion.deltaY":     {"id" : "motion_deltaY",   "type" : "FP16"}
     },

@@ -74,6 +74,7 @@ class thrust_estimator:
         self.baro_est = baroZestimator(amount)
         self.complementary = com.thrust(k_vel, k_pos)
         self.started = False
+        self.z_est = 0
 
     def calibrate(self,vicon_udp,barometer:float) -> bool:
         """Does the calibration of the initial point used for the z-estimation
@@ -114,7 +115,11 @@ class thrust_estimator:
         if vicon_available:
             self.baro_est.vicon = vicon_data[3]
         if drone_data:
-            self.baro_est.baro = drone_data['baro.pressure']
-        z_est = self.baro_est.estimate()
-        return self.complementary.update(z_est,drone_data,vicon_data,vicon_available)
+            try:
+                self.baro_est.baro = drone_data['baro.pressure']
+                self.z_est = self.baro_est.estimate()
+            except KeyError:
+                self.baro_est.baro = drone_data['range.zrange']
+                self.z_est = self.baro_est.baro
+        return self.complementary.update(self.z_est,drone_data,vicon_data,vicon_available)
     
