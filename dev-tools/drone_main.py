@@ -228,19 +228,22 @@ if __name__ == '__main__':
     time.sleep(1)
     cf.send_start_setpoint()
     print("Connection established")
-    time.sleep(.4)
+    time.sleep(.05)
     cf.cf.param.set_value("motion.disable", '1')
     print("Flowdeck disabled for onboard kalman filtering")
-    time.sleep(.5)
+    time.sleep(.05)
 
     # State estimator for panic-mode
     init_pos = vicon_udp.getTimestampedData()
     state_est = state_estimator({'x':init_pos[2],'y':init_pos[3],'z':init_pos[4],'yaw':init_pos[6]},init_pos)    
 
     # Calibrate barometric pressure
-    while state_est.z_estimator.calibrate(vicon_udp.getTimestampedData,drone_data['baro.pressure']):
-        #Sends setpoints so the drone does not loose connection
-        cf.send_setpoint(0,0,0,0)
+    try:
+        while state_est.z_estimator.calibrate(vicon_udp.getTimestampedData,drone_data['baro.pressure']):
+            cf.send_setpoint(0,0,0,0)
+    except KeyError:
+        while state_est.z_estimator.calibrate(vicon_udp.getTimestampedData,drone_data['range.zrange']):
+            cf.send_setpoint(0,0,0,0)
 
     # Start program thread
     loader = Thread(target=thread_setpoint_loader2)
@@ -261,15 +264,11 @@ if __name__ == '__main__':
         try: time.sleep(0.2)
         except KeyboardInterrupt:
             print(">>>> Sending stop command to Crazyflie <<<<")
+            cf.send_stop_setpoint()
+            time.sleep(0.1)
             running = False
-
-            for i in range(5):
-                try: 
-                    time.sleep(0.05)
-                    cf.send_stop_setpoint()
-                except: pass
-            
             if log : vicon_log.save_file()
+            time.sleep(0.1)
             exit("Exiting program")
         except JSONDecodeError: # Does not work, for some reason
             print(">>>> JSON file is corrupted, ending now <<<<")
