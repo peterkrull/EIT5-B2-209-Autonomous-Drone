@@ -16,6 +16,7 @@ class PathFollow:
         self.pathFileLocation = pathFileLocation
         self.loadPath()
         self.timeStamped = False
+        self.clockReachedDest = 0
 
     def loadPath(self):  # Path is csv file
         file = open(self.pathFileLocation)
@@ -38,28 +39,23 @@ class PathFollow:
         print("CO",position[1],position[2],position[3])
         print("DS",distPosToRef)
         
-        
+        # Ensure hover time at all points
         if(distPosToRef < self.radiusUpdate):     #If inside update radius
-            #Remove comments to hold positions before flying
-            #if(self.timeStamped = False):
-                #self.timeStamped = True
-                #clockReachedDest = time.monotonic()
+            # Remove comments to hold positions before flying
+            if(self.timeStamped == False):
+                self.timeStamped = True
+                self.clockReachedDest = time.monotonic()
             
-            #if(time.monotonic() - clockReachedDest >= self.path[self.count][4]):
-                #self.timeStamped = False
+            if(time.monotonic() - self.clockReachedDest >= float(self.path[self.count][4])):
+                self.timeStamped = False
                 self.count +=1
 
-
-        if not (self.count >= len(self.path)):
+        #
+        if self.count < len(self.path):
             return {"x":float(self.path[self.count][0]),
                     "y":float(self.path[self.count][1]),
                     "z":float(self.path[self.count][2]),
                     "yaw":float(self.path[self.count][3]),
                     "holdTime":float(self.path[self.count][4]),
                     "viconAvailable":float(self.path[self.count][5])} 
-       
-        # return xRef, yRef, zRef, Yaw
-
-# For Testing
-# pathFollow = PathFollow(500,"dev-tools/Course_development/courseToFollow.csv") 
-# print(pathFollow.getRef([5, 5, 5, 5]))
+        else: raise IndexError("End of flight file has been reached, handle this accordingly.")
