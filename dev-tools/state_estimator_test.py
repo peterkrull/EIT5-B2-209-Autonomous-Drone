@@ -20,7 +20,7 @@ with open(file, newline='') as csvFile:
 
 pos = {'x':testData[0][1], 'y': testData[0][2], 'z': testData[0][3], 'yaw': testData[0][6]}
 viconInit = [testData[0][0], testData[0][1], testData[0][2], testData[0][3], testData[0][4], testData[0][5],testData[0][6]]
-state_est = state_estimator(pos, viconInit, Kx = .2, Ky =.2, flowdeck=True)
+state_est = state_estimator(pos, viconInit, Kx = .9, Ky =.9, flowdeck=True, log = True)
 
 gx_index = testDataHeader.index("gyro_x")
 gy_index = testDataHeader.index("gyro_y")
@@ -111,5 +111,11 @@ plt.legend(handles = [z1,z2], loc = 'lower right')
 #yaw2, = plt.plot(time_axis, 180/np.pi *testData[:,6], label = "Measured yaw")
 #plt.grid()
 #plt.legend(handles = [yaw1,yaw2])
+
+plt.figure(2)
+x1, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_body_vel['x'])
+
+x2, = plt.plot(state_est.xy_estimator.log_time[0:len(state_est.xy_estimator.log_vicon_vel['x'])], state_est.xy_estimator.log_vicon_vel['x'])
+plt.grid()
 
 plt.show()
