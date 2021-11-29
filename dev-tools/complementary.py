@@ -77,7 +77,7 @@ class thrust:
 
         # ! Only select one of the below
         # ? Combined best estimate
-        drone_vel = drone_data.get('stateEstimate.vz')*1000 # [mm/s] Use on-board estimator to prevent wind-up
+        drone_vel = drone_data['stateEstimate.vz']*1000 # [mm/s] Use on-board estimator to prevent wind-up
         delta_speed = drone_data['stateEstimate.az']*9820*(xtime-self.prev_time) # [delta mm/s]
         self.prev_vel = self.comp_vel.update((self.prev_vel + delta_speed),drone_vel) # [mm/s]
 
