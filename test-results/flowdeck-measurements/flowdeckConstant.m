@@ -23,8 +23,8 @@ k_of = [k_of;plotFlowData(strcat(height23,'.csv'))];
 
 k_of
 
-ave_k_of_x = sum(k_of(:,1))/length(k_of); 
-ave_k_of_y = sum(k_of(:,2))/length(k_of);
+ave_k_of_x = sum(abs(k_of(:,1)))/length(k_of); 
+ave_k_of_y = sum(abs(k_of(:,2)))/length(k_of);
 
 fprintf('average koefficient in x: %f\n', ave_k_of_x)
 fprintf('average koefficient in y: %f\n\n', ave_k_of_y)

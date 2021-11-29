@@ -84,7 +84,7 @@ class pitchRoll_estimator:
         #print("height: ",height)
         #print("flow: ", drone_data[dictEntry])
         #print(angle_rate)
-        k_of = 0.13
+        k_of = 0.22
         to_return = 1*height/1000 * k_of*drone_data[dictEntry] + height/1000*angle_rate
         
         if self.__log == True:
