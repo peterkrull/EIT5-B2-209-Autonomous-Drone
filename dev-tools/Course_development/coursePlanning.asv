@@ -17,7 +17,7 @@ printMatrix = [printMatrix; holdTimeColumn outputHT printHoldTime];
 printMatrix = [printMatrix; checkpointColumn outputCP printCheckPoint];
 printMatrix = [printMatrix; viconColumn outputVC printVicon];
 
-pfRadius = .525; %Radius of the pathfollowing algorithme in meters
+pfRadius = .5; %Radius of the pathfollowing algorithme in meters
 
 newCourse = courseHD(1,:);
 numOfCoor = 1;
@@ -37,8 +37,8 @@ for i = 2:length(courseHD)
            newyaw = newCourse(numOfCoor-1,4) -angle
            if newyaw >=360
                newyaw = newyaw-360
-          
-           elseif newyaw <0
+           end
+           else if newyaw <0
                newyaw = newyaw +360    
            end
            

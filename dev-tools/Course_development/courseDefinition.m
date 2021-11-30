@@ -1,15 +1,15 @@
 clear
 set(findall(gcf,'-property','FontSize'),'FontSize',13)
 set(findall(gcf,'-property','Font'),'Font','Roman')
-exportFigures = false;
+exportFigures = true;
 
 areaWidth = 2.05; %Width of the flight area
 areaHeight = 3.45; %Height of the flight area
 courseWidth = .15; %Buffer around route
-courseStdHeight = 1.3; %standard height at which the drone will complete the course
+courseStdHeight = 1; %standard height at which the drone will complete the course
 ppRoute = 400; %Points per route segment
-startHeight = .65; %Height at which the drone starts and stops its course route
-courseScale = .75;
+startHeight = 0; %Height at which the drone starts and stops its course route
+courseScale = 1;
 
 %Matrix definition
 %x,y,z,yaw,hold time,checkpoint, ViconAvailable
@@ -191,3 +191,5 @@ ylim([-1 2]);
 %Writes route description to a csv-file
 writematrix(totalCourse,'courseDescriptionHD.csv');
 
+figure(4)
+plot(linspace(1,length(totalCourse), length(totalCourse)), totalCourse(:,4))
