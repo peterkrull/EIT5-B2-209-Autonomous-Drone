@@ -64,25 +64,20 @@ class thrust:
         self.prev_vel = 0.0
         self.prev_pos = 0.0
         self.prev_time = 0.0
-        self.baro_lp = None
 
     def update(self,height,drone_data,vicon_data,vicon_avail):
-
-        # Low-pass filter barometric data
-        if not self.baro_lp:
-            self.baro_lp = control.cascade(control.low_pass_bi,4,tau=0.02,init_val=height)
-
+        
         # Retreive time of logged data
         xtime = drone_data.get('time') 
 
         # ! Only select one of the below
         # ? Combined best estimate
-        drone_vel = drone_data['stateEstimate.vz']*1000 # [mm/s] Use on-board estimator to prevent wind-up
-        delta_speed = drone_data['stateEstimate.az']*9820*(xtime-self.prev_time) # [delta mm/s]
-        self.prev_vel = self.comp_vel.update((self.prev_vel + delta_speed),drone_vel) # [mm/s]
+        # drone_vel = drone_data['stateEstimate.vz']*1000 # [mm/s] Use on-board estimator to prevent wind-up
+        # delta_speed = drone_data['stateEstimate.az']*9820*(xtime-self.prev_time) # [delta mm/s]
+        # self.prev_vel = self.comp_vel.update((self.prev_vel + delta_speed),drone_vel) # [mm/s]
 
         # ? Use on-board velocity estimator only
-        # self.prev_vel = drone_data.get('stateEstimate.vz') # Use on-board estimator
+        self.prev_vel = drone_data.get('stateEstimate.vz') # Use on-board estimator
 
         # ? Do velocity estimation using Vicon integration
         # integrate_vel = drone_data.get('acc.z')*(xtime-self.prev_time)*9.82
