@@ -23,28 +23,22 @@ newCourse = courseHD(1,:);
 numOfCoor = 1;
 
 
-
+prev_vec = [1,0];
+prev_sign = 1;
 for i = 2:length(courseHD)
    vec = newCourse(numOfCoor,1:3)-courseHD(i,1:3);
    
    if pfRadius < norm(vec) | courseHD(i,6) == 1
        numOfCoor = numOfCoor +1;
-       newCourse = [newCourse;courseHD(i,:)]
-       if newCourse(numOfCoor,4) ~= newCourse(numOfCoor-1,4)
-           vec1 = newCourse(numOfCoor,1:2) - newCourse(numOfCoor-1,1:2)
-           angle = atan(vec1(2)/vec1(1))*180/pi
-           
-           newyaw = newCourse(numOfCoor-1,4) -angle
-           if newyaw >=360
-               newyaw = newyaw-360
-          
-           elseif newyaw <0
-               newyaw = newyaw +360    
-           end
-           
-           newCourse(numOfCoor,4) = newyaw
-           
+       newCourse = [newCourse;courseHD(i,:)];
+       
+       yaw = atan2(vec(2),vec(1))*180/pi +270;
+       
+       if yaw >=360
+          yaw = yaw -360; 
        end
+       
+       newCourse(numOfCoor,4) = yaw;
    end
     
 end
@@ -92,3 +86,4 @@ end
 writematrix(toOutput,'courseToFollow.csv')
 figure(2)
 plot(linspace(1,length(toOutput),length(toOutput)),toOutput(:,4))
+toOutput

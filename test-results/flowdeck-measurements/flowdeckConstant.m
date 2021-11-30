@@ -18,8 +18,8 @@ figure(3)
 k_of = [k_of;plotFlowData(strcat(height21,'.csv'))];
 figure(4)
 k_of = [k_of;plotFlowData(strcat(height22,'.csv'))];
-figure(5)
-k_of = [k_of;plotFlowData(strcat(height23,'.csv'))];
+%figure(5)
+%k_of = [k_of;plotFlowData(strcat(height23,'.csv'))];
 
 k_of
 
