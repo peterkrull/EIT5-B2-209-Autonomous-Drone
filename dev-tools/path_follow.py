@@ -50,8 +50,8 @@ class PathFollow:
                 self.timeStamped = False
                 self.count +=1
 
-        #
-        if self.count < len(self.path):
+        # Return correctly formatted output
+        if not ( self.count >= len(self.path) ):
             return {"x":float(self.path[self.count][0]),
                     "y":float(self.path[self.count][1]),
                     "z":float(self.path[self.count][2]),
