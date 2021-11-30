@@ -4,11 +4,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import random
+from scipy.fft import fft, fftfreq
+from scipy import signal
+
 
 #file = 'C:\\Users\\bosto\\Documents\\GitHub\\EIT5-B2-209-Autonomous-Drone\\test-results\\test-of-barometer\\1637152127_baro_meas.csv'
 #file = 'C:\\Users\\bosto\\Documents\\GitHub\\EIT5-B2-209-Autonomous-Drone\\test-results\\onboard-sensor-drift\\1637063677_test_flyvning.csv'
-file = 'C:\\Users\\bosto\\Documents\\GitHub\\EIT5-B2-209-Autonomous-Drone\\test-results\\onboard-sensor-drift\\1637829739_track_flight.csv'
-
+#file = 'C:\\Users\\bosto\\Documents\\GitHub\\EIT5-B2-209-Autonomous-Drone\\test-results\\onboard-sensor-drift\\1637829739_track_flight.csv'
+#file = 'C:\\Users\\bosto\\Documents\\GitHub\\EIT5-B2-209-Autonomous-Drone\\test-results\\flowdeck-measurements\\1637841045_højde2_3.csv'
+file ='C:\\Users\\bosto\\Downloads\\1638195978_y_step_flowdeck.csv'
+#file ='C:\\Users\\bosto\\Downloads\\1638197639_x_step_flowdeck.csv'
 with open(file, newline='') as csvFile:
     dataReader = csv.DictReader(csvFile, delimiter=",")
     testDataHeader = dataReader.fieldnames
@@ -19,8 +24,8 @@ with open(file, newline='') as csvFile:
 #[række,søjle]
 
 pos = {'x':testData[0][1], 'y': testData[0][2], 'z': testData[0][3], 'yaw': testData[0][6]}
-viconInit = [testData[0][0], testData[0][1], testData[0][2], testData[0][3], testData[0][4], testData[0][5],testData[0][6]]
-state_est = state_estimator(pos, viconInit, Kx = .9, Ky =.9, flowdeck=True, log = True)
+viconInit = [testData[0][0]-0.01, testData[0][1], testData[0][2], testData[0][3], testData[0][4], testData[0][5],testData[0][6]]
+state_est = state_estimator(pos, viconInit, flowdeck=True, log = True)
 
 gx_index = testDataHeader.index("gyro_x")
 gy_index = testDataHeader.index("gyro_y")
@@ -47,7 +52,7 @@ for i in testData:
     if vicon_available == 1:
         lotto_viconAvailable = random.randrange(0,500,1)
         #if lotto_viconAvailable == 69 and i[0]>5:
-        if i[0]>10:
+        if i[0]>0:
             vicon_available = 0
             print("switch time:", i[0])
 
@@ -98,7 +103,7 @@ plt.subplot(312)
 y1, = plt.plot(time_axis, [a['y']for a in est_pos], label = "estimated y")
 y2, = plt.plot(time_axis, testData[:,2], label = "Measured y")
 plt.grid()
-plt.legend(handles = [y1,y2], loc = 'lower right')
+#plt.legend(handles = [y1,y2], loc = 'lower right')
 ax = plt.gca()
 ax.set_ylim([-3000,3000])
 plt.subplot(313)
@@ -113,9 +118,54 @@ plt.legend(handles = [z1,z2], loc = 'lower right')
 #plt.legend(handles = [yaw1,yaw2])
 
 plt.figure(2)
-x1, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_body_vel['x'])
 
-x2, = plt.plot(state_est.xy_estimator.log_time[0:len(state_est.xy_estimator.log_vicon_vel['x'])], state_est.xy_estimator.log_vicon_vel['x'])
+x1, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_body_vel['x'], label = 'bodyframe vel')
+x2, = plt.plot(state_est.xy_estimator.log_time[0:len(state_est.xy_estimator.log_vicon_vel['x'])], state_est.xy_estimator.log_vicon_vel['x'], label = 'vicon velocity, body')
+x3, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_fd_vel_filtered['x'], label = 'flow deck vel filtered')
+#x4, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_ga_vel['x'])
+plt.legend(handles = [x1, x2, x3], loc = 'lower right')
 plt.grid()
+plt.title('x velocity')
+
+
+plt.figure(4)
+
+x1, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_body_vel['y'], label = 'bodyframe vel')
+x2, = plt.plot(state_est.xy_estimator.log_time[0:len(state_est.xy_estimator.log_vicon_vel['y'])], state_est.xy_estimator.log_vicon_vel['y'], label = 'vicon velocity, body')
+x3, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_fd_vel_filtered['y'], label = 'flow deck vel filtered')
+#x4, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_ga_vel['x'])
+plt.legend(handles = [x1, x2, x3], loc = 'lower right')
+plt.grid()
+plt.title('y velocity')
+
+
+N  =len([a['y']for a in est_pos])
+T  = .015
+X  = np.linspace(0,N*T, endpoint=False)
+yf = fft([a['y']for a in est_pos]*np.hamming(N))
+#print(state_est.xy_estimator.log_body_vel['x'])
+#print(yf)
+xf  =fftfreq(N,d = T)[:N//2]
+
+plt.figure(3)
+plt.semilogx(xf, 2/N*np.abs(yf[0:N//2]))
+plt.grid()
+
+
+#plt.figure(3)
+#f, t, Zxx = signal.stft([a['y']for a in est_pos], 1/T)
+#plt.pcolormesh(t, f, np.abs(Zxx), shading='gouraud')
+#plt.title('STFT Magnitude')
+#plt.ylabel('Frequency [Hz]')
+#plt.xlabel('Time [sec]')
+
+
+
+plt.figure(5)
+x1, = plt.plot(testData[:,0], testData[:,gy_index])
+plt.grid()
+plt.title('gyro.y')
+#x2, = plt.plot(testData[:,1], acc_x)
+
 
 plt.show()
