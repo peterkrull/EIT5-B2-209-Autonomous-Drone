@@ -235,7 +235,7 @@ if __name__ == '__main__':
 
     # State estimator for panic-mode
     init_pos = vicon_udp.getTimestampedData()
-    state_est = state_estimator({'x':init_pos[2],'y':init_pos[3],'z':init_pos[4],'yaw':init_pos[6]},init_pos)    
+    state_est = state_estimator({'x':init_pos[2],'y':init_pos[3],'z':init_pos[4],'yaw':init_pos[6]},init_pos, flowdeck = True)    
 
     # Calibrate barometric pressure
     try:
