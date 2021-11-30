@@ -239,8 +239,8 @@ if __name__ == '__main__':
 
     # Start drone logger thread
     if log_drone:
-        loader = Thread(target=thread_drone_log)
-        loader.start()
+        xlogger = Thread(target=thread_drone_log)
+        xlogger.start()
 
     # Wait 1 second and initialize
     time.sleep(1)
