@@ -2,7 +2,7 @@ from pitchRoll_estimator import pitchRoll_estimator
 from ComplimentaryThrust import thrust_estimator
 
 class state_estimator:
-    def __init__(self, init_pos, vicon_udp, Kx = .34, Ky = .34, Kz_vel = 0.9,Kz_pos = 0.9, **kwargs):
+    def __init__(self, init_pos, vicon_udp, Kx = .9, Ky = .9, Kz_vel = 0.9,Kz_pos = 0.9, **kwargs):
         """
         Initiates the state estimator based on an initial state
 

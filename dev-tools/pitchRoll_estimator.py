@@ -1,5 +1,7 @@
 from numpy.core.numeric import roll
+from numpy.lib.function_base import angle
 from complementary import complementary, pitchroll
+from controllers import control
 from math import sin, cos, pi
 import time 
 #from termcolor import colored
@@ -18,7 +20,7 @@ class pitchRoll_estimator:
         """
         self.__log = log
         self.g = 9.82
-        self.start_time = 0
+        self.start_time = vicon_data[0]
         self.prev_update = self.start_time
 
         pitch_filter = pitchroll(Kx,start_time=self.start_time)
@@ -27,9 +29,13 @@ class pitchRoll_estimator:
 
         self.flowdeck = flowdeck
         if self.flowdeck == True:
+            lowpass_x_filter = control.low_pass_bi(1/6, debug_time=.01)
+            lowpass_y_filter = control.low_pass_bi(1/6,debug_time=.01)
+            self.fd_filters = {'x':lowpass_x_filter, 'y':lowpass_y_filter}
+
             print('Flowdeck active for navigation')
-            xb_filter = complementary(0.05)
-            yb_filter = complementary(0.05)
+            xb_filter = complementary(0.95)
+            yb_filter = complementary(0.95)
             self.vel_filters = {'xb':xb_filter, 'yb': yb_filter}
 
         self.pos = {'x':pos['x'], 'y':pos['y']}
@@ -41,6 +47,7 @@ class pitchRoll_estimator:
         self.log_acc = {'pitch':[],'roll':[]}
         self.log_ga_vel = {'x':[],'y':[]}
         self.log_fd_vel = {'x':[],'y':[]}
+        self.log_fd_vel_filtered = {'x':[], 'y':[]}
         self.log_body_vel = {'x':[],'y':[]}
         self.log_body_pos_change = {'x':[],'y':[]}
         self.log_iner_pos_change = {'x':[],'y':[]}
@@ -57,7 +64,6 @@ class pitchRoll_estimator:
             acc_z (float) acceleration perpendicular to the drone : unit g [m/s^2]
             t (float) unix time : unit [s]
         """
-        #drone_mass = 0.0318
         est_angle = self.angle_filters[angle].update(gyro,acc,acc_z,t)
         #Currently estimates acceleration using approximation described in report, 
         #if upgrade needed use thrust for more precise calculation
@@ -69,7 +75,7 @@ class pitchRoll_estimator:
 
         return est_acc
     
-    def __flow_to_ms(self, drone_data,direction,height, angle_rate):
+    def __flow_to_ms(self, drone_data,direction,height):
         """
         Calculates the velocity of the drone based on the flow deck data
 
@@ -85,10 +91,24 @@ class pitchRoll_estimator:
         #print("flow: ", drone_data[dictEntry])
         #print(angle_rate)
         k_of = 0.22
-        to_return = 1*height/1000 * k_of*drone_data[dictEntry] + height/1000*angle_rate
-        
+        if direction == 'x':
+            gyro = 'gyro.y'
+            sign = 1
+        else:
+            gyro = 'gyro.x'
+            sign = -1
+
+
+        angle_compensation = height/1000*drone_data[gyro]*pi/180
+        converted = (height/1000 * k_of*drone_data[dictEntry] + angle_compensation)*sign
+    
+        to_return = self.fd_filters[direction].update(converted*1)
+
+
         if self.__log == True:
-            self.log_fd_vel[direction].append(to_return)
+            self.log_fd_vel[direction].append(converted)
+            self.log_fd_vel_filtered[direction].append(to_return)
+
 
         return to_return
 
@@ -121,12 +141,8 @@ class pitchRoll_estimator:
         #Updates position based on either vicon or onboard sensors depending on availability
         
         #Finds acceleration in the drones body coordinates
-        pitch_acc = self.__update_bodyAcc(gyro['x'],acc['x'],acc['z'], t, 'pitch')
-        roll_acc = self.__update_bodyAcc(gyro['y'],acc['y'],acc['z'], t, 'roll')
-
-        #Transforms body acceleration to inertial acceleration using rot-matrix
-        #x_acc = -1*(cos(yaw*pi/180)*pitch_acc-sin(yaw*pi/180)*roll_acc)
-        #y_acc = sin(yaw*pi/180)*pitch_acc+cos(yaw*pi/180)*roll_acc
+        pitch_acc = self.__update_bodyAcc(gyro['y'],acc['x'],acc['z'], t, 'pitch')
+        roll_acc = self.__update_bodyAcc(gyro['x'],acc['y'],acc['z'], t, 'roll')
 
         #Integrates acceleration to acquire velocity
         #print("delta tid:", t-self.prev_update)
@@ -134,8 +150,8 @@ class pitchRoll_estimator:
         delta_vel_y = roll_acc*(t-self.prev_update)
 
         if self.flowdeck == True:
-            flow_velx = self.__flow_to_ms(drone_data,'x',z,gyro['x'])
-            flow_vely = self.__flow_to_ms(drone_data,'y',z,gyro['y'])
+            flow_velx = self.__flow_to_ms(drone_data,'x',z)
+            flow_vely = self.__flow_to_ms(drone_data,'y',z)
             
             ga_velx  = self.body_vel['x']+delta_vel_x
             ga_vely = self.body_vel['y']+delta_vel_y
@@ -172,29 +188,32 @@ class pitchRoll_estimator:
             self.log_body_pos_change['y'].append(body_posChangey)
             self.log_iner_pos_change['x'].append(inertial_posChangex)
             self.log_iner_pos_change['y'].append(inertial_posChangey)
+        
+        
+        
+        deltaTime = (vicon_data[0]-self.prev_vicon_data[0])
+        vicon_vel_X = (vicon_data[1]-self.prev_vicon_data[1])/deltaTime/1000
+        vicon_vel_Y = (vicon_data[2]-self.prev_vicon_data[2])/deltaTime/1000
+        self.prev_vicon_data = vicon_data
 
+        rot_vicon_vel_X = cos(yaw*pi/180)*vicon_vel_X + sin(yaw*pi/180)*vicon_vel_Y
+        rot_vicon_vel_Y = -sin(yaw*pi/180)*vicon_vel_X + cos(yaw*pi/180)*vicon_vel_Y
 
         if vicon_available == 1:
-            deltaTime = (vicon_data[0]-self.prev_vicon_data[0])
-            vicon_vel_X = (vicon_data[1]-self.prev_vicon_data[1])/deltaTime/1000
-            vicon_vel_Y = (vicon_data[2]-self.prev_vicon_data[2])/deltaTime/1000
             #Differentiates position to acquire velocity
-            self.body_vel['x'] = cos(yaw*pi/180)*vicon_vel_X + sin(yaw*pi/180)*vicon_vel_Y
-            self.body_vel['y'] = -sin(yaw*pi/180)*vicon_vel_X + cos(yaw*pi/180)*vicon_vel_Y
+            self.body_vel['x'] = rot_vicon_vel_X
+            self.body_vel['y'] = rot_vicon_vel_Y
 
             #Updates position to be vicons position
             self.pos['x'] = vicon_data[1]
             self.pos['y'] = vicon_data[2]
 
-            self.prev_vicon_data = vicon_data
-
         self.prev_update = t
 
         if self.__log == True:
             self.log_time.append(t)
-            if vicon_available == 1:
-                self.log_vicon_vel['x'].append(self.body_vel['x'])
-                self.log_vicon_vel['y'].append(self.body_vel['y'])
+            self.log_vicon_vel['x'].append(rot_vicon_vel_X)
+            self.log_vicon_vel['y'].append(rot_vicon_vel_Y)
 
         return self.pos
 
