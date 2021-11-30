@@ -246,10 +246,11 @@ if __name__ == '__main__':
     time.sleep(1)
     cf.send_start_setpoint()
     print("Connection established")
-    time.sleep(.05)
-    cf.cf.param.set_value("motion.disable", '1')
-    print("Flowdeck disabled for onboard kalman filtering")
-    time.sleep(.05)
+    if log_drone:
+        time.sleep(.05)
+        cf.cf.param.set_value("motion.disable", '1')
+        print("Flowdeck disabled for onboard kalman filtering")
+        time.sleep(.05)
 
     # State estimator for panic-mode
     init_pos = vicon_udp.getTimestampedData()
@@ -281,11 +282,15 @@ if __name__ == '__main__':
     main = Thread(target=thread_main_loop)
     main.start()
 
+    print("Program setup succesful")
+
     # Handle program exit correctly
     while 1 :
         try: time.sleep(0.2)
         except KeyboardInterrupt:
             print(">>>> Sending stop command to Crazyflie <<<<")
+            cf.send_setpoint(0,0,0,0)
+            time.sleep(0.1)
             cf.send_stop_setpoint()
             time.sleep(0.1)
             running = False
