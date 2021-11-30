@@ -43,6 +43,24 @@ def config_load_from_file(filename = "config.json") -> dict:
     except JSONDecodeError:
         exit("Configuration file is corrupt, please check it again.")
 
+# Verify integrity of pulled drone data
+def verify_integrity(drone_data):
+    print("Verifying : ",drone_data)
+    non_zeros = 0
+
+    # Chek for non-zero entries
+    for i in drone_data:
+        if drone_data[i] > 0:
+            non_zeros += 1
+    
+    # If more than half are non-zero, return true
+    if non_zeros > int(len(drone_data)/2):
+        print("Drone entegrity: PASSED")
+        return True
+    else: 
+        print("Drone entegrity: FAILED")
+        return False
+
 # Constantly load setpoint from file
 def thread_setpoint_loader():
     global sp,running
@@ -249,6 +267,10 @@ if __name__ == '__main__':
     loader = Thread(target=thread_setpoint_loader2)
     loader.start()
     time.sleep(0.2)
+
+    # Raise exception if integrity failed
+    if not verify_integrity(drone_data):
+        raise RuntimeError("Drone data logging to initialize correctly")
 
     # Start all controllers
     CON = [pid_thrust,pid_pitch,pid_roll,pid_yaw]
