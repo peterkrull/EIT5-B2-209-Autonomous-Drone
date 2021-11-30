@@ -94,15 +94,11 @@ class control:
             if self.min and self.max:
                 if value-self.y < self.min:
                     self.y -= self.max-self.min
+                    self.x -= self.max-self.min
             
                 elif value-self.y  > self.max:
                     self.y += self.max-self.min
-            
-                if value-self.x < self.min:
-                    self.x -= self.max-self.min
-
-                if value-self.x > self.max:
-                    self.x += self.max-self.min
+                    self.x += self.max-self.min                    
 
             # Classic biliniar filter
             if not self.debug_time:
@@ -410,23 +406,31 @@ class control:
 
 if __name__ == "__main__":
 
+    def wrapper(value,min,max):
+        if value < min :
+            return value + max-min
+        elif value > max:
+            print(value)
+            return value - max+min
+        else: return value
+
     from matplotlib import pyplot as plt
+    from math import sin
 
-    signal = [0 for i in range(10)]
-    signal += [1 for i in range(100)]
+    signal1 = [0 for i in range(10)]
+    signal1 += [1 for i in range(50)]
 
-    lp1 = control.low_pass(0.07,debug_time=1/360)
-    lp2 = control.low_pass_bi(0.07,debug_time=1/360)
+    signal2 = [1 for i in range(500)]
 
-    xtime = []
-    out1 = []
-    out2 = []
+    lp1 = control.cascade(control.low_pass_bi,3,tau=0.016,debug_time=1/100,rollover_min=-180,rollover_max=180,init_val = 0)
+    lp2 = control.cascade(control.low_pass_bi,10,tau=0.005,debug_time=1/100,rollover_min=-180,rollover_max=180,init_val = 0)
 
-    for t,x in enumerate(signal):
-        xtime.append(t/360)
-        out1.append(lp1.update(x))
-        out2.append(lp2.update(x))
+    xtime = [x/100 for x in range(len(signal1))]
+    out1 = [lp1.update(x) for x in (signal1)]
+    out2 = [lp2.update(x) for x in (signal1)]
 
-    plt.plot(xtime,out1,xtime,out2)
+    signal1 = [wrapper(x,-180,180) for x in signal1]
+
+    plt.plot(xtime,signal1,xtime,out1,xtime,out2)
     plt.grid()
     plt.show()
