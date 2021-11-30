@@ -1,7 +1,7 @@
 clear
 set(findall(gcf,'-property','FontSize'),'FontSize',13)
 set(findall(gcf,'-property','Font'),'Font','Roman')
-exportFigures = true;
+exportFigures = false;
 
 areaWidth = 2.05; %Width of the flight area
 areaHeight = 3.45; %Height of the flight area
