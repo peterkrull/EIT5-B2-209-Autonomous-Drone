@@ -1,5 +1,3 @@
-from numpy.core.numeric import roll
-from numpy.lib.function_base import angle
 from complementary import complementary, pitchroll
 from controllers import control
 from math import sin, cos, pi
