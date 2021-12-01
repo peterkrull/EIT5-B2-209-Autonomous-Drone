@@ -27,6 +27,7 @@ pos = {'x':testData[0][1], 'y': testData[0][2], 'z': testData[0][3], 'yaw': test
 viconInit = [testData[0][0]-0.01, testData[0][1], testData[0][2], testData[0][3], testData[0][4], testData[0][5],testData[0][6]]
 state_est = state_estimator(pos, viconInit, flowdeck=True, log = True)
 
+
 gx_index = testDataHeader.index("gyro_x")
 gy_index = testDataHeader.index("gyro_y")
 ax_index = testDataHeader.index("acc_x")
@@ -111,49 +112,59 @@ z1, = plt.plot(time_axis, [a['z']for a in est_pos], label = "estimated z")
 z2, = plt.plot(time_axis, testData[:,3], label = "Measured z")
 plt.grid()
 plt.legend(handles = [z1,z2], loc = 'lower right')
+
+
+plt.figure(2)
+plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_fd_vel['x'])
+
+
+
+
+
+
 #plt.subplot(414)
 #yaw1, = plt.plot(time_axis, [a['yaw']for a in est_pos], label = "estimated yaw")
 #yaw2, = plt.plot(time_axis, 180/np.pi *testData[:,6], label = "Measured yaw")
 #plt.grid()
 #plt.legend(handles = [yaw1,yaw2])
 
-plt.figure(2)
+#plt.figure(2)
 
-x1, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_body_vel['x'], label = 'bodyframe vel')
-x2, = plt.plot(state_est.xy_estimator.log_time[0:len(state_est.xy_estimator.log_vicon_vel['x'])], state_est.xy_estimator.log_vicon_vel['x'], label = 'vicon velocity, body')
-x3, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_fd_vel_filtered['x'], label = 'flow deck vel filtered')
+#x1, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_body_vel['x'], label = 'bodyframe vel')
+#x2, = plt.plot(state_est.xy_estimator.log_time[0:len(state_est.xy_estimator.log_vicon_vel['x'])], state_est.xy_estimator.log_vicon_vel['x'], label = 'vicon velocity, body')
+#x3, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_fd_vel_filtered['x'], label = 'flow deck vel filtered')
 #x4, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_ga_vel['x'])
-plt.legend(handles = [x1, x2, x3], loc = 'lower right')
-plt.grid()
-plt.title('x velocity')
+#plt.legend(handles = [x1, x2, x3], loc = 'lower right')
+#plt.grid()
+#plt.title('x velocity')
 
 
-plt.figure(4)
+#plt.figure(4)
 
-x1, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_body_vel['y'], label = 'bodyframe vel')
-x2, = plt.plot(state_est.xy_estimator.log_time[0:len(state_est.xy_estimator.log_vicon_vel['y'])], state_est.xy_estimator.log_vicon_vel['y'], label = 'vicon velocity, body')
-x3, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_fd_vel_filtered['y'], label = 'flow deck vel filtered')
+#x1, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_body_vel['y'], label = 'bodyframe vel')
+#x2, = plt.plot(state_est.xy_estimator.log_time[0:len(state_est.xy_estimator.log_vicon_vel['y'])], state_est.xy_estimator.log_vicon_vel['y'], label = 'vicon velocity, body')
+#x3, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_fd_vel_filtered['y'], label = 'flow deck vel filtered')
 #x4, = plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_ga_vel['x'])
-plt.legend(handles = [x1, x2, x3], loc = 'lower right')
-plt.grid()
-plt.title('y velocity')
+#plt.legend(handles = [x1, x2, x3], loc = 'lower right')
+#plt.grid()
+#plt.title('y velocity')
 
 
-N  =len([a['y']for a in est_pos])
-T  = .015
-X  = np.linspace(0,N*T, endpoint=False)
-yf = fft([a['y']for a in est_pos]*np.hamming(N))
+#N  =len([a['y']for a in est_pos])
+#T  = .015
+#X  = np.linspace(0,N*T, endpoint=False)
+#yf = fft([a['y']for a in est_pos]*np.hamming(N))
 #print(state_est.xy_estimator.log_body_vel['x'])
 #print(yf)
-xf  =fftfreq(N,d = T)[:N//2]
-
-plt.figure(3)
-plt.semilogx(xf, 2/N*np.abs(yf[0:N//2]))
-plt.grid()
-
+#xf  =fftfreq(N,d = T)[:N//2]
 
 #plt.figure(3)
-#f, t, Zxx = signal.stft([a['y']for a in est_pos], 1/T)
+#plt.semilogx(xf, 2/N*np.abs(yf[0:N//2]))
+#plt.grid()
+
+
+#plt.figure(6)
+#f, t, Zxx = signal.stft(state_est.xy_estimator.log_acc['pitch'], 1/T)
 #plt.pcolormesh(t, f, np.abs(Zxx), shading='gouraud')
 #plt.title('STFT Magnitude')
 #plt.ylabel('Frequency [Hz]')
@@ -161,10 +172,11 @@ plt.grid()
 
 
 
-plt.figure(5)
-x1, = plt.plot(testData[:,0], testData[:,gy_index])
-plt.grid()
-plt.title('gyro.y')
+#plt.figure(5)
+#x1, = plt.plot(testData[:,0], testData[:,gy_index])
+#plt.plot(state_est.xy_estimator.log_time, state_est.xy_estimator.log_acc['pitch'])
+#plt.grid()
+#plt.title('acceleration pitch')
 #x2, = plt.plot(testData[:,1], acc_x)
 
 

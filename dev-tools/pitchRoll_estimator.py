@@ -29,13 +29,13 @@ class pitchRoll_estimator:
 
         self.flowdeck = flowdeck
         if self.flowdeck == True:
-            lowpass_x_filter = control.low_pass_bi(1/6, debug_time=.01)
-            lowpass_y_filter = control.low_pass_bi(1/6,debug_time=.01)
+            lowpass_x_filter = control.low_pass_bi(1/12, debug_time=.01)
+            lowpass_y_filter = control.low_pass_bi(1/12,debug_time=.01)
             self.fd_filters = {'x':lowpass_x_filter, 'y':lowpass_y_filter}
 
             print('Flowdeck active for navigation')
-            xb_filter = complementary(0.95)
-            yb_filter = complementary(0.95)
+            xb_filter = complementary(1)
+            yb_filter = complementary(1)
             self.vel_filters = {'xb':xb_filter, 'yb': yb_filter}
 
         self.pos = {'x':pos['x'], 'y':pos['y']}
@@ -102,7 +102,7 @@ class pitchRoll_estimator:
         angle_compensation = height/1000*drone_data[gyro]*pi/180
         converted = (height/1000 * k_of*drone_data[dictEntry] + angle_compensation)*sign
     
-        to_return = self.fd_filters[direction].update(converted*1)
+        to_return = self.fd_filters[direction].update(converted)
 
 
         if self.__log == True:
@@ -111,6 +111,63 @@ class pitchRoll_estimator:
 
 
         return to_return
+
+    def update_2(self,vicon_available, vicon_data, drone_data,z):
+        self.vicon_available = vicon_available
+
+        if self.flowdeck == True:
+            if 'motion.deltaX' not in drone_data or 'motion.deltaY' not in drone_data:
+                print("drone_data does not contain flow deck data")
+                print("Flow deck estimating disabled")
+                self.flowdeck = False
+        
+        yaw = drone_data['stateEstimate.yaw']
+        t = drone_data['time']
+
+        self.body_vel['x'] = self.__flow_to_ms(drone_data,'x',z)
+        self.body_vel['y'] = self.__flow_to_ms(drone_data,'y',z)
+            
+        body_posChangex = self.body_vel['x']*(t-self.prev_update)*1000
+        body_posChangey = self.body_vel['y']*(t-self.prev_update)*1000
+        
+        inertial_posChangex = cos(yaw*pi/180)*body_posChangex-sin(yaw*pi/180)*body_posChangey
+        inertial_posChangey = sin(yaw*pi/180)*body_posChangex+cos(yaw*pi/180)*body_posChangey
+        
+        self.pos['x'] += inertial_posChangex
+        self.pos['y'] += inertial_posChangey
+        
+        if self.__log == True:
+            self.log_body_pos_change['x'].append(body_posChangex)
+            self.log_body_pos_change['y'].append(body_posChangey)
+            self.log_iner_pos_change['x'].append(inertial_posChangex)
+            self.log_iner_pos_change['y'].append(inertial_posChangey)
+
+        deltaTime = (vicon_data[0]-self.prev_vicon_data[0])
+        vicon_vel_X = (vicon_data[1]-self.prev_vicon_data[1])/deltaTime/1000
+        vicon_vel_Y = (vicon_data[2]-self.prev_vicon_data[2])/deltaTime/1000
+        self.prev_vicon_data = vicon_data
+
+        rot_vicon_vel_X = cos(yaw*pi/180)*vicon_vel_X + sin(yaw*pi/180)*vicon_vel_Y
+        rot_vicon_vel_Y = -sin(yaw*pi/180)*vicon_vel_X + cos(yaw*pi/180)*vicon_vel_Y
+
+        if vicon_available == 1:
+            #Differentiates position to acquire velocity
+            self.body_vel['x'] = rot_vicon_vel_X
+            self.body_vel['y'] = rot_vicon_vel_Y
+
+            #Updates position to be vicons position
+            self.pos['x'] = vicon_data[1]
+            self.pos['y'] = vicon_data[2]
+
+        self.prev_update = t
+
+        if self.__log == True:
+            self.log_time.append(t)
+            self.log_vicon_vel['x'].append(rot_vicon_vel_X)
+            self.log_vicon_vel['y'].append(rot_vicon_vel_Y)
+
+        return self.pos
+
 
 
 
