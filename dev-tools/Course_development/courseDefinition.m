@@ -16,7 +16,7 @@ courseScale = 1;
 
 
 %Defines the starting point
-startPoint = [areaWidth/2 areaHeight/2+.5 courseStdHeight];
+startPoint = [areaWidth/2 areaHeight/2 courseStdHeight];
 
 %Defines the first set point
 firstSetPoint = [startPoint(1)-(areaWidth-courseWidth) startPoint(2) courseStdHeight];
