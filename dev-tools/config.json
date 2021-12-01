@@ -8,8 +8,8 @@
     },
     "pid_vals" : {
         "thrust" :  {"Kp" : 30e3,   "Ki" : 0,   "Kd" : 17e3},
-        "pitch" :   {"Kp" : 40,     "Ki" : 0,   "Kd" : 26},
-        "roll" :    {"Kp" : 40,     "Ki" : 0,   "Kd" : 26},
+        "pitch" :   {"Kp" : 35,     "Ki" : 0,   "Kd" : 21.7},
+        "roll" :    {"Kp" : 35,     "Ki" : 0,   "Kd" : 21.7},
         "yaw" :     {"Kp" : 15,     "Ki" : 0,   "Kd" : 1.5,
                     "rollover_min" : -180,"rollover_max" : 180}
     },
