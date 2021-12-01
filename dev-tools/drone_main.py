@@ -50,7 +50,7 @@ def verify_integrity(drone_data):
 
     # Chek for non-zero entries
     for i in drone_data:
-        if drone_data[i] > 0:
+        if float(drone_data[i]) != 0:
             non_zeros += 1
     
     # If more than half are non-zero, return true
