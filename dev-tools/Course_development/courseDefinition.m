@@ -40,7 +40,7 @@ totalCourse = [courseToFirstSetPoint yaw1 holdTime checkPoints vicon];
 %second set point
 secondSetPoint = [firstSetPoint(1) firstSetPoint(2)-1 courseStdHeight];
 courseToSecondSetPoint = [linspace(firstSetPoint(1),secondSetPoint(1),ppRoute); linspace(firstSetPoint(2),secondSetPoint(2),ppRoute);linspace(firstSetPoint(3),secondSetPoint(3),ppRoute)]';
-yaw2 = (yaw1(1)+90)*ones(ppRoute,1);
+yaw2 = (yaw1(1)-90)*ones(ppRoute,1);
 checkPoints = zeros(ppRoute,1);
 checkPoints(1) = 0;
 checkPoints(ppRoute) = 1;
