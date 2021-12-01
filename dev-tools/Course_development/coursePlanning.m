@@ -32,15 +32,32 @@ for i = 2:length(courseHD)
        numOfCoor = numOfCoor +1;
        newCourse = [newCourse;courseHD(i,:)];
        
-       yaw = atan2(-vec(2),vec(1))*180/pi +270
+       yaw = atan2(-vec(2),vec(1))*180/pi +270;
        
        if yaw >=360
-          yaw = yaw -360
+          yaw = yaw -360;
        elseif yaw < 0
-           yaw = yaw +360
+           yaw = yaw +360;
        end
        
        newCourse(numOfCoor,4) = yaw;
+       
+       if newCourse(numOfCoor,yawColumn) ~= newCourse(numOfCoor-1,yawColumn)
+           if abs(yaw-newCourse(numOfCoor-1,yawColumn)) >45
+               newCourse(numOfCoor-1, holdTimeColumn) = .5;
+           end
+           buffer = newCourse(numOfCoor,:);
+           
+           holdAtYaw = newCourse(numOfCoor-1,:);
+           holdAtYaw(holdTimeColumn) = .3;
+           holdAtYaw(yawColumn) = yaw;
+           newCourse(numOfCoor, :) = holdAtYaw;
+           numOfCoor = numOfCoor +1;
+           newCourse = [newCourse; buffer]
+           
+       end
+       
+       
    end
     
 end

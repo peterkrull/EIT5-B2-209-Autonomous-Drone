@@ -91,6 +91,12 @@ totalCourse = [totalCourse(:,1)*courseScale totalCourse(:,2)*courseScale totalCo
 %Draws points from start to end 
 launchLanding = linspace(startHeight,startPoint(3),ppRoute);
 courseToStartPoint = [linspace(startPoint(1)*courseScale,startPoint(1)*courseScale,ppRoute);linspace(startPoint(2)*courseScale,startPoint(2)*courseScale,ppRoute);launchLanding]';
+launchYaw = yaw1;
+launchHold = zeros(ppRoute,1);
+launchCheckPoints = zeros(ppRoute,1); launchCheckPoints(1) = 1;
+launchVicon = ones(ppRoute,1);
+courseToAdd = [courseToStartPoint launchYaw, launchHold, launchCheckPoints launchVicon];
+totalCourse = [courseToAdd; totalCourse];
 
 
 %Draws takeoff/landing zone
