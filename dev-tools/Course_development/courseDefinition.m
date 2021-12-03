@@ -30,7 +30,7 @@ checkPoints(1) = 1;
 checkPoints(ppRoute) = 1;
 %StationKeeping [s]
 holdTime = zeros(ppRoute,1);
-holdTime(1) = 10;
+holdTime(1) = 5;
 %Vicon available
 vicon = ones(ppRoute,1);
 %Adds the first part of the course to the total course
