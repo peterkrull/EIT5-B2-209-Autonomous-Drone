@@ -239,18 +239,24 @@ if __name__ == '__main__':
 
     # Start drone logger thread
     if log_drone:
+        print("Starting logger")
         xlogger = Thread(target=thread_drone_log)
         xlogger.start()
+        print("Started logger")
+
+    for i in range(10):
+        time.sleep(0.2)
+        print(drone_data)
 
     # Wait 1 second and initialize
-    time.sleep(1)
+    time.sleep(0.1)
     cf.send_start_setpoint()
     print("Connection established")
     if log_drone:
-        time.sleep(.05)
+        time.sleep(0.05)
         cf.cf.param.set_value("motion.disable", '1')
         print("Flowdeck disabled for onboard kalman filtering")
-        time.sleep(.05)
+        time.sleep(0.05)
 
     # State estimator for panic-mode
     init_pos = vicon_udp.getTimestampedData()
