@@ -13,7 +13,7 @@ inte = 1/s;
 flow = 1;
 
 %Delay vicon
-tdv = 0.02;
+tdv = 0.1;
 vicon = (1-(tdv/2)*s)/(1+(tdv/2)*s);
 %------------------------------------------------------
 
@@ -39,7 +39,7 @@ opts.PhaseWrapping='on';
 opts.PhaseWrappingBranch = - 500;
 
 figure(1)
-bode(radio*D*H*M*inte*vicon*flow*LP*inte,opts)
+bode(radio*D*H*M*inte*vicon*inte,opts)
 grid on
 xlim([1 10])
 x0=0;
@@ -51,9 +51,9 @@ x0=0;
 exportgraphics(gcf,'bodeEstimator.pdf','ContentType','vector')
 
 figure(2)
-margin(radio*D*H*M*inte*vicon*flow*LP*inte)
+margin(radio*D*H*M*inte*vicon*inte)
 
-ol = radio*D*H*M*inte*vicon*flow*LP*inte;
+ol = radio*D*H*M*inte*vicon*inte;
 
 cl = (radio*D*H*M*inte*vicon)/(1+ol);
 
