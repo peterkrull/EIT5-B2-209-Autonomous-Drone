@@ -13,6 +13,13 @@
         "yaw" :     {"Kp" : 15,     "Ki" : 0,   "Kd" : 1.5,
                     "rollover_min" : -180,"rollover_max" : 180}
     },
+    "pid_vals_stateEstimator":{
+        "thrust" : {"Kp":20e3, "Ki":0, "Kd":13e3},
+        "pitch"  : {"Kp":1.8 , "Ki":0, "Kd":5.94},
+        "roll"   : {"Kp":1.8 , "Ki":0, "Kd":5.94},
+        "yaw"    : {"Kp":15  , "Ki":0, "Kd":1.5,
+            "rollover_min" : -180,"rollover_max" : 180}
+    },
     "act_limits" : {
         "thrust" :  {"min":10000,   "max":65535},
         "pitch" :   {"min":-40,     "max":40},

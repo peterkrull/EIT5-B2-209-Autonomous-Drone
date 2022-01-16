@@ -27,8 +27,8 @@ class pitchRoll_estimator:
 
         self.flowdeck = flowdeck
         if self.flowdeck == True:
-            lowpass_x_filter = control.low_pass_bi(1/12, debug_time=.01)
-            lowpass_y_filter = control.low_pass_bi(1/12,debug_time=.01)
+            lowpass_x_filter = control.low_pass_bi(1/(.5*2*pi), debug_time=.01)
+            lowpass_y_filter = control.low_pass_bi(1/(.5*2*pi),debug_time=.01)
             self.fd_filters = {'x':lowpass_x_filter, 'y':lowpass_y_filter}
 
             print('Flowdeck active for navigation')
@@ -98,7 +98,7 @@ class pitchRoll_estimator:
 
 
         angle_compensation = height/1000*drone_data[gyro]*pi/180
-        converted = (height/1000 * k_of*drone_data[dictEntry] + angle_compensation)*sign
+        converted = -height/1000 * k_of*drone_data[dictEntry] + angle_compensation*sign
     
         to_return = self.fd_filters[direction].update(converted)
 
@@ -119,7 +119,7 @@ class pitchRoll_estimator:
                 print("Flow deck estimating disabled")
                 self.flowdeck = False
         
-        yaw = drone_data['stateEstimate.yaw']
+        yaw = drone_data['stateEstimate.yaw']+90
         t = drone_data['time']
 
         self.body_vel['x'] = self.__flow_to_ms(drone_data,'x',z)

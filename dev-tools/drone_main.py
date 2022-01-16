@@ -112,6 +112,8 @@ def thread_main_loop():
     position = {}
     estimated_position = {}
 
+    prev_viconAvailable = sp['viconAvailable']
+
     while running:
         # Get vicon data and log it
         pre_time = time.time()
@@ -164,6 +166,22 @@ def thread_main_loop():
             yaw_error += 360
         elif yaw_error > 180:
             yaw_error -= 360
+
+        #Updates controller values if viconAvailable has changed
+        if prev_viconAvailable != sp['viconAvailabel']:
+            if sp['viconAvailable']:
+                #Sets controller value for standard flight with Vicon
+                pid_pitch.set_gain(**conf["pid_vals"]["pitch"])
+                pid_roll.set_gain(**conf["pid_vals"]["roll"])
+                pid_thrust.set_gain(**conf["pid_vals"]["thrust"])
+                pid_yaw.set_gain(**conf["pid_vals"]["yaw"])
+            else:
+                #Sets controller value for flight with state estimator
+                pid_pitch.set_gain(**conf["pid_vals_stateEstimator"]["pitch"])
+                pid_roll.set_gain(**conf["pid_vals_stateEstimator"]["roll"])
+                pid_thrust.set_gain(**conf["pid_vals_stateEstimator"]["thrust"])
+                pid_yaw.set_gain(**conf["pid_vals_stateEstimator"]["yaw"])
+
 
         # Get updated control from PID
         pitch = pid_pitch.update(y_error_drone)
