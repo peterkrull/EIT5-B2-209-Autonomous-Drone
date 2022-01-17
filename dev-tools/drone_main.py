@@ -181,7 +181,7 @@ def thread_main_loop():
                 pid_roll.set_gain(**conf["pid_vals_stateEstimator"]["roll"])
                 pid_thrust.set_gain(**conf["pid_vals_stateEstimator"]["thrust"])
                 pid_yaw.set_gain(**conf["pid_vals_stateEstimator"]["yaw"])
-
+        prev_viconAvailable = sp['viconAvailable']
 
         # Get updated control from PID
         pitch = pid_pitch.update(y_error_drone)
