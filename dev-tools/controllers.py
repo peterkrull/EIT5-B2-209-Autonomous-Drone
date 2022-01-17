@@ -314,7 +314,7 @@ class control:
                 #print("Setting D gain to : {}".format(Kd))
                 self.d = control.derivative(Kd,**kwargs)
 
-        def set_gain(self,Kp = None, Ki = None,Kd = None):
+        def set_gain(self,Kp = None, Ki = None,Kd = None, **kwargs):
             """Applies new gains to the PID controller
 
             Args:
@@ -330,12 +330,12 @@ class control:
             if self.Ki and Ki:
                 self.i.K = Ki
             elif Ki:
-                self.i = control.proportional(Ki)
+                self.i = control.integral(Ki,**kwargs)
                 
             if self.Kd and Kd:
                 self.d.K = Kd
             elif Kd:
-                self.d = control.proportional(Kd)
+                self.d = control.derivative(Kd,**kwargs)
         
         def start(self):
             """
